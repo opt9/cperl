@@ -7310,20 +7310,32 @@ Perl_yylex(pTHX)
 #else
             && (s[1] == '\n' || (s[1] == '\r' && s[2] == '\n'))
 #endif
-            && (s == PL_linestart || s[-1] == '\n') )
+	    && (s == PL_linestart || s[-1] == '\n') )
+	{
+	    PL_expect = XSTATE;
+	    formbrack = 2; /* dot seen where arguments expected */
+	    goto rightbracket;
+	}
+	if (PL_expect == XSTATE && s[1] == '.' && s[2] == '.') {
+	    s += 3;
+	    TERM(YADAYADA);
+	}
+        if (!isDIGIT(s[1]) && s[1] != '"' && s[1] != '\'' && s[1] != '$'
+        &&  !isSPACE(s[1]) /* do concat with whitespace, $, or strings. barewords only */
+        &&  cop_hints_fetch_pvs(PL_curcop, "dots", 0) != &PL_sv_placeholder)
         {
-            PL_expect = XSTATE;
-            formbrack = 2; /* dot seen where arguments expected */
-            goto rightbracket;
+            s++;
+            if (isIDFIRST_lazy_if(s,UTF)) {
+                s = force_word(s,METHOD,FALSE,TRUE);
+                TOKEN(ARROW);
+            }
+            else
+                TERM(ARROW);
         }
-        if (PL_expect == XSTATE && s[1] == '.' && s[2] == '.') {
-            s += 3;
-            TERM(YADAYADA);
-        }
-        if (PL_expect == XOPERATOR || !isDIGIT(s[1])) {
-            char tmp = *s++;
-            if (*s == tmp) {
-                if (!PL_lex_allbrackets
+	if (PL_expect == XOPERATOR || !isDIGIT(s[1])) {
+	    char tmp = *s++;
+	    if (*s == tmp) {
+		if (!PL_lex_allbrackets
                     && PL_lex_fakeeof >= LEX_FAKEEOF_RANGE)
                 {
                     s--;
