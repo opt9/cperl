@@ -20093,6 +20093,9 @@ Perl_rpeep(pTHX_ OP *o)
                             }
                         }
 #ifdef PERL_INLINE_SUBS
+                    if (gv && ((SvTYPE(gv) == SVt_PVGV && (cv = GvCV(gv)))
+                            || (SvROK(gv) && (cv = (CV*)SvRV((SV*)gv))
+                                          && SvTYPE(cv) == SVt_PVCV))) {
                         if (cv && CvINLINABLE(cv)) {
                             if (cop_hints_fetch_pvs(PL_curcop, "inline", REFCOUNTED_HE_EXISTS)) {
                                 DEBUG_k(Perl_deb(aTHX_ "rpeep: skip inline sub %" SVf ", no inline\n",
@@ -20102,7 +20105,7 @@ Perl_rpeep(pTHX_ OP *o)
                                 DEBUG_k(Perl_deb(aTHX_ "rpeep: inline %s %" SVf "\n",
                                     meth ? "method" : "sub",
                                     SVfARG(cv_name(cv,NULL,CV_NAME_NOMAIN))));
-                                if ((tmp = cv_do_inline(o, o2, cv, FALSE))) {
+                                if ((tmp = cv_do_inline(o, o2, cv, !!meth))) {
                                     o = tmp;
                                     if (oldop)
                                         oldop->op_next = o;
