@@ -3866,8 +3866,6 @@ S_cv_check_inline(pTHX_ const OP *o, CV *compcv)
 {
     const OP *firstop = o;
     unsigned short i = 0;
-
-    PERL_UNUSED_ARG(compcv);
     PERL_ARGS_ASSERT_CV_CHECK_INLINE;
 
     for (; o; o = o->op_next) {
