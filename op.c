@@ -3848,16 +3848,13 @@ S_maybe_multiconcat(pTHX_ OP *o)
 examine an optree to determine whether it's in-lineable.
 In contrast to op_const_sv allow short op sequences which are not
 constant folded.
-max 15 ops, no new pad, no intermediate return, no recursion, ...
-cv_inline needs to translate the args, change return to jumps.
-
-$lhs = call(...); => $lhs = do {...inlined...};
+max 10 ops, no new pad, no intermediate return, no recursion, ...
 
 =cut
 */
 
 #ifndef PERL_MAX_INLINE_OPS
-#define PERL_MAX_INLINE_OPS 15
+#define PERL_MAX_INLINE_OPS 10
 #endif
 
 #ifdef PERL_INLINE_SUBS
@@ -3884,6 +3881,7 @@ S_cv_check_inline(pTHX_ const OP *o, CV *compcv)
 	    return FALSE;
 	else if (type == OP_LEAVESUB)
 	    break;
+        /* recursive? */
 	else if (type == OP_ENTERSUB && OpFIRST(o) == firstop) {
 	    return FALSE;
 	}
@@ -11044,6 +11042,8 @@ S_op_const_sv(pTHX_ const OP *o, CV *cv, bool allow_lex)
 }
 
 /* cv_do_inline needs to translate the args,
+ * splice inlined ENTERSUB into the current body.
+ * METHOD should not arrive here, neither $obj->method.
  * handle args: shift, = @_ or just accept SIGNATURED subs with PERL_FAKE_SIGNATURE.
  * with a OP_SIGNATURE it is easier. without need to populate @_.
  * if arg is call-by-value make a copy.
@@ -11059,23 +11059,28 @@ static OP*
 S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
 {
     /* WIP splice inlined ENTERSUB into the current body */
-    const OP *pushmarkop = o;
+    OP *firstop = o;
+    OP *list = NULL;
+    OP *arg;
     PERL_ARGS_ASSERT_CV_DO_INLINE;
 
     /*assert(o); the pushmark
     assert(cv);*/
     assert(IS_TYPE(o, PUSHMARK));
     assert(IS_TYPE(cvop, ENTERSUB));
+    assert(!meth);
     /* first translate the args to the temp vars */
-
+#if 0
+    /* for now skip dynamic methods */
     if (meth) { /* push self */
         if (UNLIKELY(OP_TYPE_IS(o->op_next, OP_GVSV))) { /* $self->meth not,
                                                 as we don't know the run-time dispatch */
             DEBUG_k(deb("rpeep: skip inline $self->%s\n", HEK_KEY(CvNAME_HEK(cv))));
-            return pushmarkop;
+            return firstop;
         }
         if (OP_TYPE_IS(o->op_next, OP_CONST)) { /* pkg->meth yes, if pkg::meth exists */
-            /* convert to push @_, const pv, keep pushmark */
+            /* @_ is at PAD_SVl(0) in the sub. If inlined it will be at PL_defgv */
+            /* convert to push @_, const(pv). */
             /* pushmark const => pushmark gv rv2av const push:
                7     <@> push[t2] vK/2 ->8
                3        <0> pushmark s ->4
@@ -11083,27 +11088,62 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
                4           <$> gv(*_) s ->5
                6        <$> const(PV "pkg") s ->7 */
             /* remove bareword-ness of class name */
-            OP* pushop;
-            OP* constop = o->op_next;
-            constop->op_flags &= ~OPf_MOD;
+            OP *constop = o->op_next;
+            OP *on = constop->op_next;
+            constop->op_flags &= ~OPf_MOD; /* because we push it ? */
             constop->op_private &= ~(OPpCONST_BARE|OPpCONST_STRICT);
-            o->op_next = newUNOP(OP_RV2AV, 0, newGVOP(OP_GV, 0, PL_defgv));
-            OpMORESIB_set(o->op_next, constop);
-            o->op_next->op_next = constop;
-            pushop = newLISTOP(OP_PUSH, 0, pushmarkop, o->op_next);
-            pushop->op_next = constop->op_next;
-            constop->op_next = pushop;
+            if (!GvAV(PL_defgv)) gv_AVadd(PL_defgv);
+            o = newLISTOP(OP_LIST, 0,
+                          newUNOP(OP_RV2AV, 55, newGVOP(OP_GV, 0, PL_defgv)),
+                          constop);
+            o = op_convert_list(OP_PUSH, 0, o);
+            op_free(firstop);
+            o->op_next = on;
+            firstop = OpFIRST(o);
+            DEBUG_k(deb("rpeep: inlined method %s\n", SvPVX(cSVOPx(constop)->op_sv)));
         }
     }
-    for (; o != cvop; o = o->op_next) {
-	const OPCODE type = o->op_type;
-	if (type == OP_GV && meth) {
-	    return NULL;
-	}
+#endif
+    /* handle arity and args, check if OP_SIGNATURE in cv */
+    /* pushmark args gv entersub body ... NULL ...
+       => pushmark args push body ... */
+    arg = o->op_next;
+    if (arg->op_next != cvop) { /* has args */
+        OP *defav;
+        /* @_ in pad or global */
+        const PADOFFSET offset = pad_findmy_pvs("@_", 0);
+        if (offset == NOT_IN_PAD || PAD_COMPNAME_FLAGS_isOUR(offset)) {
+            if (!GvAV(PL_defgv)) gv_AVadd(PL_defgv);
+            defav = newAVREF(newGVOP(OP_GV, 0, PL_defgv));
+        }
+        else {
+            defav = newOP(OP_PADAV, 0);
+            defav->op_targ = offset;
+        }
+        arg->op_flags &= ~OPf_MOD; /* because we push it */
+        o = arg->op_next;
+        list = newLISTOP(OP_LIST, 0, defav, arg);
+        for (; o->op_next->op_next != cvop; o = o->op_next) {
+            list = op_append_elem(OP_LIST, list, o);
+        }
+        arg = o->op_next; /* gv */
+        o->op_next = o->_OP_SIBPARENT_FIELDNAME = NULL;
+        list = op_convert_list(OP_PUSH, 0, list);
+        op_free(firstop);
+        firstop = OpFIRST(list);
     }
-    o = pushmarkop;
-    /*op_free(pushmarkop);*/
-    return o;
+    /* splice body, skip gv + entersub */
+    firstop->op_next = CvSTART(cv);
+    for (; o->op_next; o = o->op_next) {
+        if (OP_TYPE_IS(o, OP_LEAVESUB))
+            op_null(o);
+    }
+    o->op_next = cvop->op_next;
+    OpFIRST(arg->op_next) = 0; /* protect cv from being freed */
+    op_free(arg->op_next);
+    op_free(arg);
+    DEBUG_k(deb("rpeep: inlined sub\n"));
+    return firstop;
 }
 #endif
 
@@ -19999,8 +20039,19 @@ Perl_rpeep(pTHX_ OP *o)
                 }
                 for (; o2 && i<8; o2 = o2->op_next, i++) {
                     OPCODE type = o2->op_type;
-                    if (type == OP_GV || type == OP_GVSV) {
+                    if (type == OP_GV /*|| type == OP_GVSV */) {
                         gvop = o2; /* gvsv for variable method parts, left or right */
+                        /* delete the null ops between op_gv and op_entersub
+                           for easier arity checks */
+                        for (; o2 && OP_TYPE_IS(o2->op_next, OP_NULL) && i<8; i++) {
+                            if (OP_TYPE_IS(o2->op_next, OP_NULL)) {
+                                OP* tmp = o2->op_next->op_next;
+                                op_free(o2->op_next);
+                                o2->op_next = tmp;
+                            } else {
+                                o2 = o2->op_next;
+                            }
+                        }
                     } else if (type == OP_METHOD_NAMED) {
                         /* method name only with pkg->m, not $obj->m */
                         /* TODO: we could speculate and cache an inlined variant for $obj,
@@ -20069,17 +20120,6 @@ Perl_rpeep(pTHX_ OP *o)
                                             SVfARG(cv_name(cv,NULL,CV_NAME_NOMAIN)));
                                     /* convert static method to normal sub */
 /* See http://blogs.perl.org/users/rurban/2011/06/how-perl-calls-subs-and-methods.html */
-#if 0
-                                    OP* cop = o->op_next;
-                                    OP* ngv = newGVOP(OP_GV, 0, gvf);
-                                    OpMORESIB_set(cop, ngv);
-                                    cop->op_private &= ~(OPpCONST_BARE|OPpCONST_STRICT);
-                                    ngv->op_next = o2;
-                                    for (; cop->op_next != gvop; cop=cop->op_next) ;
-                                    cop->op_next = ngv;
-                                    OpMORESIB_set(cop, ngv);
-                                    op_free(gvop);
-#else
                                     /* remove bareword-ness of class name */
                                     o->op_next->op_private &=
                                         ~(OPpCONST_BARE|OPpCONST_STRICT);
@@ -20128,11 +20168,12 @@ Perl_rpeep(pTHX_ OP *o)
                     if (gv && ((SvTYPE(gv) == SVt_PVGV && (cv = GvCV(gv)))
                             || (SvROK(gv) && (cv = (CV*)SvRV((SV*)gv))
                                           && SvTYPE(cv) == SVt_PVCV))) {
-                        if (cv && CvINLINABLE(cv)) {
+                        if (cv && CvINLINABLE(cv) && !meth) {
                             if (cop_hints_fetch_pvs(PL_curcop, "inline", REFCOUNTED_HE_EXISTS)) {
                                 DEBUG_k(Perl_deb(aTHX_ "rpeep: skip inline sub %" SVf ", no inline\n",
                                     SVfARG(cv_name(cv,NULL,CV_NAME_NOMAIN))));
                             } else {
+<<<<<<< 4430cf1fce116548895b3a101bcc21178ae3a096
                                 OP* tmp;
                                 DEBUG_k(Perl_deb(aTHX_ "rpeep: inline %s %" SVf "\n",
                                     meth ? "method" : "sub",
@@ -20142,6 +20183,16 @@ Perl_rpeep(pTHX_ OP *o)
                                     if (oldop)
                                         oldop->op_next = o;
                                 }
+||||||| merged common ancestors
+                                DEBUG_v(deb("rpeep: inline %s %s\n", meth ? "method" : "sub", GvNAME_get(gv)));
+                                o2 = cv_do_inline(o, o2, cv, !!meth))) {
+=======
+                                OP* tmp;
+                                DEBUG_v(deb("rpeep: inline %s %s\n", meth ? "method" : "sub", GvNAME_get(gv)));
+                                if ((tmp = S_cv_do_inline(o, o2, cv, !!meth))) {
+                                    o = tmp;
+                                }
+>>>>>>> inline: implement it, skip methods (WIP)
                             }
                         }
 #endif
