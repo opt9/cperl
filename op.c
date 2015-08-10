@@ -3903,7 +3903,14 @@ S_cv_check_inline(pTHX_ const OP *o, CV *compcv)
             UNOP_AUX_item *items = cUNOP_AUXo->op_aux;
             UV actions = items->uv;
             items++;
-            if ((actions & MDEREF_ACTION_MASK) == MDEREF_AV_padav_aelem) {
+            if ((actions & MDEREF_ACTION_MASK) == MDEREF_AV_gvav_aelem) {
+                GV *gv = (GV*)UNOP_AUX_item_sv(items);
+                if (GvNAMELEN(gv) == 1 && *GvNAME(gv) == '_') {
+                    DEBUG_k(deb("check_inline: skip call-by-ref multideref($_[])\n"));
+                    return FALSE;
+                }
+            }
+            else if ((actions & MDEREF_ACTION_MASK) == MDEREF_AV_padav_aelem) {
                 PADOFFSET off = items->pad_offset;
                 PADLIST * const padlist = CvPADLIST(compcv);
                 PADNAME * pad = padnamelist_fetch(PadlistNAMES(padlist), off);
@@ -3912,18 +3919,22 @@ S_cv_check_inline(pTHX_ const OP *o, CV *compcv)
                     return FALSE;
                 }
             }
-            else if ((actions & MDEREF_ACTION_MASK) == MDEREF_AV_gvav_aelem) {
-                GV *gv = (GV*)UNOP_AUX_item_sv(items);
-                if (GvNAMELEN(gv) == 1 && *GvNAME(gv) == '_') {
-                    DEBUG_k(deb("check_inline: skip call-by-ref multideref($_[])\n"));
-                    return FALSE;
-                }
-            }
         }
         /* recursive? test please */
-	else if (type == OP_ENTERSUB && OpFIRST(o) == firstop) {
-            DEBUG_k(deb("check_inline: skip recursion\n"));
-	    return FALSE;
+	else if (type == OP_GV && OP_TYPE_IS(o->op_next, OP_ENTERSUB)) {
+            GV* gv = cGVOPo_gv;
+            CV *cv = NULL;
+            if (SvTYPE(gv) == SVt_PVGV && (cv = GvCV(gv))
+                && SvTYPE(cv) == SVt_PVCV) {
+                ;
+            } else if (SvROK(gv) && (cv = (CV*)SvRV((SV*)gv))
+                       && SvTYPE(cv) == SVt_PVCV) {
+                ;
+            }
+            if (cv && CvSTART(cv) == firstop) {
+                DEBUG_k(deb("check_inline: skip recursion\n"));
+                return FALSE;
+            }
 	}
     }
     return TRUE;
