@@ -11126,6 +11126,11 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
           pushmark args gv entersub body leavesub NULL
        => pushmark gv rv2av args push enter body leave */
     arg = o->op_next;
+#ifndef PERL_FREE_NULLOPS
+    /* ignore optimized away null args */
+    for (; arg->op_next && OP_TYPE_IS(arg, OP_NULL); arg = arg->op_next)
+        ;
+#endif
     if (arg->op_next != cvop) { /* has args */
         OP *defav;
         /* @_ in pad or global. @_ is at PAD_SVl(0) in a sub */
@@ -11145,8 +11150,14 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
             defav->op_next = arg->op_next;
         }
         o = arg->op_next;
-        list = newLISTOP(OP_LIST, 0, defav, o);
-        for (; o->op_next && o->op_next->op_next != cvop; o = o->op_next) {
+        /* walk the args in siblings/kids order */
+        for (; o->op_next && o->op_next->op_next != cvop; o = OpSIBLING(o)) {
+#ifndef PERL_FREE_NULLOPS
+            if (OP_TYPE_IS(o, OP_GV)) {
+                for (; o->op_next && OP_TYPE_IS(o->op_next, OP_NULL); o=o->op_next);
+                if (o->op_next == cvop) break;
+            }
+#endif
             args++;
             o->op_flags &= ~OPf_MOD; /* warn about it? convert to call-by-ref? */
             OpMORESIB_set(o, o->op_next);
@@ -11156,8 +11167,10 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
             }
         }
         arg = o->op_next; /* the gv */
-        o->op_next = o->_OP_SIBPARENT_FIELDNAME = NULL; /* the last arg */
-        OpLAST(list) = o;
+        o->op_next = NULL; /* the last arg */
+        list = newLISTOP(OP_LIST, 0, defav, NULL);
+        OpLASTSIB_set(o, list);
+        OpLAST(list) = o; /* XXX this list might be too long still re siblings */
         list = op_convert_list(OP_PUSH, 0, list);
         op_free(firstop);
         firstop = OpFIRST(list);
@@ -20108,23 +20121,33 @@ Perl_rpeep(pTHX_ OP *o)
                 for (; o2 && i<8; o2 = o2->op_next, i++) {
                     OPCODE type = o2->op_type;
                     if (type == OP_GV /*|| type == OP_GVSV */) {
-#ifdef DEBUGGING
+#if defined(DEBUGGING) && defined(PERL_FREE_NULLOPS)
                         int j = 0;
 #endif
                         gvop = o2; /* gvsv for variable method parts, left or right */
                         /* delete the null ops between op_gv and op_entersub
                            for easier arity checks */
+#ifdef PERL_FREE_NULLOPS
                         for (; o2 && OP_TYPE_IS(o2->op_next, OP_NULL) && i<8; i++) {
-                            if (OP_TYPE_IS(o2->op_next, OP_NULL)) {
-                                OP* tmp = o2->op_next->op_next;
+                            OP* on = o2->op_next;
+                            if (OP_TYPE_IS(on, OP_NULL)) {
+                                OP* tmp = on->op_next;
                                 DEBUG_k(j++);
-                                /*op_free(o2->op_next);*/ /* XXX fixup kids and siblings also? */
+                                /* XXX fixup kids and siblings also? */
+                                if (OpSIBLING(o2) == on)
+                                    OpMORESIB_set(o2, tmp);
+                                if (OpKIDS(on)) {
+                                    if (OpFIRST(on) == on)
+                                        OpFIRST(on) = tmp;
+                                }
+                                op_free(on);
                                 o2->op_next = tmp;
                             } else {
                                 o2 = o2->op_next;
                             }
                         }
                         DEBUG_k(if(j)deb("rpeep: freed %d NULL ops between GV and ENTERSUB\n", j));
+#endif
                     } else if (type == OP_METHOD_NAMED) {
                         /* method name only with pkg->m, not $obj->m */
                         /* TODO: we could speculate and cache an inlined variant for $obj,
