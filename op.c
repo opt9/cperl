@@ -11162,6 +11162,7 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
             o->op_flags &= ~OPf_MOD; /* warn about it? convert to call-by-ref? */
             OpMORESIB_set(o, o->op_next);
             if (args > 8) {
+                CvINLINABLE_off(cv); /* do not try again */
                 DEBUG_k(deb("rpeep: skip inlining sub, too many args\n"));
                 return NULL;
             }
