@@ -1771,6 +1771,7 @@ use File::Glob qw(:case);
                 lib/filetest.{pm,t}
                 lib/h2ph.t
                 lib/h2xs.t
+                lib/inline.{pm,t}
                 lib/integer.{pm,t}
                 lib/less.{pm,t}
                 lib/locale.{pm,t}
