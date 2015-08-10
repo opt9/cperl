@@ -11134,32 +11134,35 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
             defav = newUNOP(OP_RV2AV, OPf_MOD|OPf_REF|OPf_KIDS|OPf_WANT_LIST, o);
             o->op_next = defav;
             defav->op_next = arg;
-            OpMORESIB_set(defav, arg);
+            OpMORESIB_set(defav, arg->op_next);
             defav->op_targ = 0;
         }
         else {
             defav = newOP(OP_PADAV, 0);
             defav->op_targ = offset;
-            defav->op_next = arg;
+            defav->op_next = arg->op_next;
         }
-        list = newLISTOP(OP_LIST, 0, defav, NULL);
-        o = arg;
+        o = arg->op_next;
+        list = newLISTOP(OP_LIST, 0, defav, o);
         for (; o->op_next && o->op_next->op_next != cvop; o = o->op_next) {
             DEBUG_k(args++);
             o->op_flags &= ~OPf_MOD; /* warn about it? convert to call-by-ref? */
-            list = op_append_elem(OP_LIST, list, o);
+            OpMORESIB_set(o, o->op_next);
         }
-        arg = o->op_next; /* gv */
+        arg = o->op_next; /* the gv */
         o->op_next = o->_OP_SIBPARENT_FIELDNAME = NULL; /* the last arg */
-        list = op_convert_list(OP_PUSH, 0, list);
         OpLAST(list) = o;
+        list = op_convert_list(OP_PUSH, 0, list);
         op_free(firstop);
         firstop = OpFIRST(list);
+        OpMORESIB_set(firstop, defav);
         if (IS_TYPE(defav, RV2AV)) {
             firstop->op_next = OpFIRST(defav);
             OpLASTSIB_set(OpFIRST(defav), defav);
             OpLAST(list) = OpSIBLING(defav);
             OpLASTSIB_set(OpSIBLING(defav), list);
+        } else {
+            firstop->op_next = defav;
         }
         finalize_op(list);
         o->op_next = list;
