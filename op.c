@@ -3879,9 +3879,14 @@ S_cv_check_inline(pTHX_ const OP *o, CV *compcv)
             || type == OP_DIE    || type == OP_RESET
             || type == OP_RUNCV  || type == OP_PADRANGE)
 	    return FALSE;
+        /* PERL_GLOBAL_STRUCT_INIT is only defined inside util.c:Perl_init_global_struct */
+#if defined(USE_CPERL) && (!defined(PERL_GLOBAL_STRUCT_INIT) && defined(Perl_pp_signature))
+	if (type == OP_SIGNATURE) /* not yet. fast, but need to fixup targs */
+	    return FALSE;
+#endif
 	else if (type == OP_LEAVESUB)
 	    break;
-        /* recursive? */
+        /* recursive? test please */
 	else if (type == OP_ENTERSUB && OpFIRST(o) == firstop) {
 	    return FALSE;
 	}
@@ -4501,7 +4506,12 @@ S_finalize_op(pTHX_ OP* o)
              * (which is a list op. So pretend it wasn't a listop */
             if (type == OP_GLOB)
                 type = OP_NULL;
+            else if (type == OP_FREED)
+                return; /* do not follow null'ed freed kids. yes it lives and it follows */
         }
+        else if (type == OP_FREED)
+            return; /* freed kids neither (the ops between gv and entersub) */
+
         family = PL_opargs[type] & OA_CLASS_MASK;
 
         has_last = (   family == OA_BINOP
@@ -11135,16 +11145,19 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
             list = op_append_elem(OP_LIST, list, o);
         }
         arg = o->op_next; /* gv */
-        o->op_next = o->_OP_SIBPARENT_FIELDNAME = NULL;
+        o->op_next = o->_OP_SIBPARENT_FIELDNAME = NULL; /* the last arg */
         list = op_convert_list(OP_PUSH, 0, list);
         OpLAST(list) = o;
         op_free(firstop);
         firstop = OpFIRST(list);
         if (IS_TYPE(defav, RV2AV)) {
             firstop->op_next = OpFIRST(defav);
+            OpLASTSIB_set(OpFIRST(defav), defav);
+            OpLAST(list) = OpSIBLING(defav);
+            OpLASTSIB_set(OpSIBLING(defav), list);
         }
+        finalize_op(list);
     }
-    finalize_op(list);
 
     /* splice body, skip and free the gv */
     o = CvSTART(cv);
@@ -11164,12 +11177,19 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
         assert(0 && !"no LEAVESUB");
         o->op_next = cvop->op_next; /* skip and free entersub */
         op_free(arg->op_next);
-        list->op_next = CvSTART(cv);
+        if (list)
+            list->op_next = CvSTART(cv);
+        else
+            firstop->op_next = CvSTART(cv);
     } else {
         OP *o = arg->op_next;
-        list->op_next = o;
+        if (list)
+            list->op_next = o;
+        else
+            firstop->op_next = o;
         OpFIRST(o) = NULL; /* protect cv from being freed */
         OpTYPE_set(o, OP_ENTER);
+        cUNOPo->op_first = NULL;
         o->op_flags = o->op_private = 0;
         o->op_next = CvSTART(cv);
     }
@@ -20083,7 +20103,7 @@ Perl_rpeep(pTHX_ OP *o)
                             if (OP_TYPE_IS(o2->op_next, OP_NULL)) {
                                 OP* tmp = o2->op_next->op_next;
                                 DEBUG_k(j++);
-                                op_free(o2->op_next);
+                                /*op_free(o2->op_next);*/ /* XXX fixup kids and siblings also? */
                                 o2->op_next = tmp;
                             } else {
                                 o2 = o2->op_next;
