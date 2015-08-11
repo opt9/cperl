@@ -11219,6 +11219,7 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
         OpLASTSIB_set(o, list);
         OpLAST(list) = o; /* XXX this list might be too long still re siblings */
         list = op_convert_list(OP_PUSH, 0, list);
+        firstop->op_flags &= OPf_KIDS; /* keep em */
         op_free(firstop);
         firstop = OpFIRST(list);
         OpMORESIB_set(firstop, defav);
@@ -11243,11 +11244,18 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
             || (o->op_type >= OP_CALLER && o->op_type <= OP_RESET)
             || (o->op_type >= OP_SORT && o->op_type <= OP_FLOP))
             with_enter_leave = TRUE;
-        if (OP_TYPE_IS(o->op_next, OP_LEAVESUB) && with_enter_leave) {
-            o = o->op_next;
-            OpTYPE_set(o, OP_LEAVE);
-            /* keep the LEAVESUB context op_flags: OPf_PARENS|OPf_KIDS|OPf_WANT_VOID */
-            o->op_private &= ~OPpARG1_MASK; /* keep OPpREFCOUNTED */
+        if (OP_TYPE_IS(o->op_next, OP_LEAVESUB)) {
+            if (with_enter_leave) {
+                o = o->op_next;
+                OpTYPE_set(o, OP_LEAVE);
+                /* keep the LEAVESUB context op_flags:
+                   OPf_PARENS|OPf_KIDS|OPf_WANT_VOID */
+                o->op_private &= ~OPpARG1_MASK; /* keep OPpREFCOUNTED */
+            } else {
+                cUNOPx(o->op_next)->op_first = NULL;
+                o->op_next->op_flags &= OPf_KIDS; /* keep em */
+                op_free(o->op_next);
+            }
             o->op_next = cvop->op_next;
             break;
         }
@@ -11259,6 +11267,7 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
     }
     if (!o->op_next || !with_enter_leave ) { /* no LEAVE, so no ENTER also */
         o->op_next = cvop->op_next;    /* skip and free entersub */
+        cvop->op_flags &= OPf_KIDS; /* keep em */
         cUNOPx(cvop)->op_first = NULL; /* to protect the cv from being freed */
         op_free(cvop);
         if (list) {
@@ -11283,6 +11292,7 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
         o->op_flags = o->op_private = 0;
         o->op_next = CvSTART(cv);
     }
+    arg->op_flags &= OPf_KIDS; /* keep em */
     op_free(arg); /* the gv */
     DEBUG_kv(deb("rpeep: inlined sub. args: %d, body: %d, with enter/leave: %d\n",
                  args, i, with_enter_leave ));
