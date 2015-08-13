@@ -11168,7 +11168,9 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
 #endif
     /* handle optional args:
           pushmark args* gv null* entersub body leavesub NULL
-       => pushmark gv rv2av args* push enter? body leave? */
+       => pushmark gv rv2av args* push enter? body leave?
+       TODO: dependent on the body the push args list can be optimized away.
+    */
     arg = S_op_next_nn(o);
     if (S_op_next_nn(arg) != cvop) { /* has args */
         OP *defav;
