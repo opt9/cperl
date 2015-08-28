@@ -649,7 +649,7 @@ Perl_op_native_peek(pTHX_ const OP* o)
     case OP_INT_PADSV:
         if (sv && SvANY(sv)) {
             assert(!SvNATIVE(sv));
-            Perl_sv_catpvf(aTHX_ t, "%"IVdf":int", SvIVX(sv));
+            Perl_sv_catpvf(aTHX_ t, "%"IVdf":int", sv->sv_u.svu_iv);
         }
         else
             Perl_sv_catpvf(aTHX_ t, ":int");
@@ -660,7 +660,7 @@ Perl_op_native_peek(pTHX_ const OP* o)
     case OP_UINT_PADSV:
         if (sv && SvANY(sv)) {
             assert(!SvNATIVE(sv));
-            Perl_sv_catpvf(aTHX_ t, "%"UVuf":uint", SvUVX(sv));
+            Perl_sv_catpvf(aTHX_ t, "%"UVuf":uint", sv->sv_u.svu_uv);
         } else
             Perl_sv_catpvf(aTHX_ t, ":uint");
         break;
@@ -671,12 +671,14 @@ Perl_op_native_peek(pTHX_ const OP* o)
         break;
     }
     case OP_NUM_PADSV:
+#if NVSIZE <= IVSIZE
         if (sv && SvANY(sv)) {
             STORE_LC_NUMERIC_UNDERLYING_SET_STANDARD();
             assert(!SvNATIVE(sv));
-            Perl_sv_catpvf(aTHX_ t, "%"NVgf":num", SvNVX(sv));
+            Perl_sv_catpvf(aTHX_ t, "%"NVgf":num", sv->sv_u.svu_nv);
             RESTORE_LC_NUMERIC_UNDERLYING();
         } else
+#endif
             Perl_sv_catpvf(aTHX_ t, ":num");
         break;
     case OP_STR_CONST:
@@ -685,7 +687,7 @@ Perl_op_native_peek(pTHX_ const OP* o)
     case OP_STR_PADSV:
         if (sv && SvANY(sv)) {
             assert(!SvNATIVE(sv));
-            Perl_sv_catpvf(aTHX_ t, "\"%s\":str", SvPVX_const(sv));
+            Perl_sv_catpvf(aTHX_ t, "\"%s\":str", sv->sv_u.svu_pv);
         } else
             Perl_sv_catpvf(aTHX_ t, ":str");
         break;
