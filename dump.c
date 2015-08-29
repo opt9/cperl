@@ -536,6 +536,18 @@ Perl_sv_peek(pTHX_ SV *sv)
             Perl_sv_catpvf(aTHX_ t, ">");
         }
     }
+    else if (SvNATIVE(sv)) {
+	sv_catpv(t, "NATIVE ");
+        if (SvPOK(sv))
+            Perl_sv_catpvf(aTHX_ t, "str(%s)", sv->sv_u.svu_pv);
+        else if (SvUOK(sv))
+            Perl_sv_catpvf(aTHX_ t, "uint(%" UVuf ")", sv->sv_u.svu_uv);
+        else if (SvIOK(sv))
+            Perl_sv_catpvf(aTHX_ t, "int(%" IVdf ")", sv->sv_u.svu_iv);
+        else if (SvNOK(sv))
+            Perl_sv_catpvf(aTHX_ t, "num(%" NVgf ")", sv->sv_u.svu_nv);
+	goto finish;
+    }
 
     if (SvROK(sv)) {
 	sv_catpv(t, "\\");
@@ -644,29 +656,29 @@ Perl_op_native_peek(pTHX_ const OP* o)
     sv = cSVOPo_sv;
     switch (type) {
     case OP_INT_CONST:
-        Perl_sv_catpvf(aTHX_ t, "%"IVdf":int", (IV)sv);
+        Perl_sv_catpvf(aTHX_ t, "%" IVdf ":int", (IV)sv);
         break;
     case OP_INT_PADSV:
         if (sv && SvANY(sv)) {
             assert(!SvNATIVE(sv));
-            Perl_sv_catpvf(aTHX_ t, "%"IVdf":int", sv->sv_u.svu_iv);
+            Perl_sv_catpvf(aTHX_ t, "%" IVdf ":int", sv->sv_u.svu_iv);
         }
         else
             Perl_sv_catpvf(aTHX_ t, ":int");
         break;
     case OP_UINT_CONST:
-        Perl_sv_catpvf(aTHX_ t, "%"UVuf":uint", (UV)sv);
+        Perl_sv_catpvf(aTHX_ t, "%" UVuf ":uint", (UV)sv);
         break;
     case OP_UINT_PADSV:
         if (sv && SvANY(sv)) {
             assert(!SvNATIVE(sv));
-            Perl_sv_catpvf(aTHX_ t, "%"UVuf":uint", sv->sv_u.svu_uv);
+            Perl_sv_catpvf(aTHX_ t, "%" UVuf ":uint", sv->sv_u.svu_uv);
         } else
             Perl_sv_catpvf(aTHX_ t, ":uint");
         break;
     case OP_NUM_CONST: {
 	STORE_LC_NUMERIC_UNDERLYING_SET_STANDARD();
-	Perl_sv_catpvf(aTHX_ t, "(%"NVgf")", PTR2NV(sv));
+	Perl_sv_catpvf(aTHX_ t, "(%" NVgf ")", PTR2NV(sv));
 	RESTORE_LC_NUMERIC_UNDERLYING();
         break;
     }
@@ -675,7 +687,7 @@ Perl_op_native_peek(pTHX_ const OP* o)
         if (sv && SvANY(sv)) {
             STORE_LC_NUMERIC_UNDERLYING_SET_STANDARD();
             assert(!SvNATIVE(sv));
-            Perl_sv_catpvf(aTHX_ t, "%"NVgf":num", sv->sv_u.svu_nv);
+            Perl_sv_catpvf(aTHX_ t, "%" NVgf ":num", sv->sv_u.svu_nv);
             RESTORE_LC_NUMERIC_UNDERLYING();
         } else
 #endif
