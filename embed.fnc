@@ -1142,7 +1142,7 @@ s	|bool	|cv_check_inline|NN const OP *o|NN CV *compcv
 s	|OP*	|cv_do_inline|NN const OP *o|NN const OP *cvop|NN CV *cv|bool meth
 #endif
 i	|OP*	|new_entersubop |NN GV* gv |NN OP* arg
-sd	|OPCODE |op_native_variant|NN OP* o|core_types_t t
+s	|OPCODE |op_native_variant|NN OP* o|core_types_t typeret|NN int* do_cast
 i	|IV	|const_iv	|NN OP* o
 i	|bool	|can_const_iv	|NN OP* o
 s	|OP*	|op_pad2const	|NN OP* firstkid|NN OP* o
