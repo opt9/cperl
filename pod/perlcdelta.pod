@@ -79,6 +79,15 @@ L<[perl #105920]|https://rt.perl.org/Public/Bug/Display.html?id=105920>.
 Parsing NUL bytes is now consistent from files with eval string.
 C<\0> delimited C<q> quote is still valid though.
 
+=head1 Incompatible Changes
+
+=head2 Protected hash iterators
+
+Iterating over a hash may now by default not change any key. Allow the
+previous destructive behavior of changing a hash while iterating over
+it with C<use hashiter;>
+See L<[cperl #117]|https://github.com/perl11/cperl/issues/117>.
+
 =head1 Deprecations
 
 XXX Any deprecated features, syntax, modules etc. should be listed here.
