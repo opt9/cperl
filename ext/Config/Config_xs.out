@@ -266,7 +266,7 @@ Config_lookup (register const char *str, register unsigned int len);
 
 struct Perl_Config;
 
-#define TOTAL_KEYWORDS 1275
+#define TOTAL_KEYWORDS 1276
 #define MIN_WORD_LENGTH 1
 #define MAX_WORD_LENGTH 37
 #define MIN_HASH_VALUE 3
@@ -1582,6 +1582,7 @@ struct stringpool_t
     char stringpool_str5520[sizeof ("d_void_closedir")];
     char stringpool_str5521[sizeof ("d_ipv6_mreq")];
     char stringpool_str5571[sizeof ("d_flexfnam")];
+    char stringpool_str5578[sizeof ("usesafehashiter")];
     char stringpool_str5582[sizeof ("d_msg_peek")];
     char stringpool_str5595[sizeof ("d_long_double_style_vax")];
     char stringpool_str5596[sizeof ("d_long_double_style_ieee")];
@@ -2860,6 +2861,7 @@ static const struct stringpool_t stringpool_contents =
     "d_void_closedir",
     "d_ipv6_mreq",
     "d_flexfnam",
+    "usesafehashiter",
     "d_msg_peek",
     "d_long_double_style_vax",
     "d_long_double_style_ieee",
@@ -6398,8 +6400,10 @@ Config_lookup (register const char *str, register unsigned int len)
       {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO},
 
       {(U16)(long)&((struct stringpool_t *)0)->stringpool_str5571,		T_INV,0,ALN64I"@@d_flexfnam@@"},
-      {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO},
-      {XSCNO},
+      {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO},
+
+      {(U16)(long)&((struct stringpool_t *)0)->stringpool_str5578,	T_INV,0,ALN64I"@@usesafehashiter@@"},
+      {XSCNO}, {XSCNO}, {XSCNO},
 
       {(U16)(long)&((struct stringpool_t *)0)->stringpool_str5582,		T_INV,0,ALN64I"@@d_msg_peek@@"},
       {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO}, {XSCNO},
@@ -7009,7 +7013,7 @@ Config_lookup (register const char *str, register unsigned int len)
       {(U16)(long)&((struct stringpool_t *)0)->stringpool_str9783,	T_INV,0,ALN64I"@@known_extensions@@"}
     };
 
-#line 7012 "Config.xs"
+#line 7016 "Config.xs"
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
     {
       register int key = Config_hash (str, len);

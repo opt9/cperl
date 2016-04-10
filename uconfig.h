@@ -5350,6 +5350,15 @@
 /*#define	USE_SANITIZE_ADDRESS		/ **/
 #endif
 
+/* USE_SAFE_HASHITER:
+ *	This symbol, if defined, indicates that Perl disallows changes of
+ *      hash keys during iteration. You need to permit it with use hashiter,
+ *      or set the key "unsafe_hashiter" in the current cop hints hash.
+ */
+#ifndef USE_SAFE_HASHITER
+#define	USE_SAFE_HASHITER		/**/
+#endif
+
 /* PERL_HASH_FUNC_*:
  *	This symbol defines the used perl hash function variant.
  *      It is set in Configure or via -Dhash_func=, but can be left blank.
@@ -5369,6 +5378,6 @@
 #endif
 
 /* Generated from:
- * 616505b28688242e23e2975772665cfcf4d2bf117587405c00d59e3a829915ed config_h.SH
- * 5853d893a1e07c13469c06331a06a68a66b570c343f9f75d1983ce12c1663c99 uconfig.sh
+ * 33294aaf4c9314829a05da67e8a4ab5b7241421c84df2e55e97e7c135f3efb48 config_h.SH
+ * 653aed7b71c32f4cdc9e631ba456856b7e961a88daa976a0b9bdeadf9442fec2 uconfig.sh
  * ex: set ro: */
