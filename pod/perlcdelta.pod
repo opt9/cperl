@@ -79,6 +79,22 @@ L<[perl #105920]|https://rt.perl.org/Public/Bug/Display.html?id=105920>.
 Parsing NUL bytes is now consistent from files with eval string.
 C<\0> delimited C<q> quote is still valid though.
 
+=head1 Modules and Pragmata
+
+=head2 New Modules and Pragmata
+
+=over 4
+
+=item L<exact_arith> 0.01
+
+Promote on overflow to bigint/bignum as in perl6, do not loose precision
+with all builtin arithmetic operators.
+L<[cperl #21]|https://github.com/perl11/cperl/issues/21>
+
+=back
+
+=head2 Updated Modules and Pragmata
+
 =head1 Deprecations
 
 XXX Any deprecated features, syntax, modules etc. should be listed here.
