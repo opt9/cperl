@@ -3919,7 +3919,7 @@ sub import {
     foreach (@c) {
         $_ =~ tr/a-zA-Z0-9://cd; # limit to sane characters
     }
-    push @c, \'Calc'            # if all fail, try these
+    push @c, \'Calc'            # if all fail, try these \''
       if $warn_or_die < 2;      # but not for "only"
     $CALC = '';                 # signal error
     foreach my $l (@c) {

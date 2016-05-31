@@ -5527,6 +5527,14 @@ usefaststdio (usefaststdio.U):
 	and indicates that Perl should be built to use 'fast stdio'.
 	Defaults to define in Perls 5.8 and earlier, to undef later.
 
+useexactarith (useexactarith.U):
+	This variable conditionally defines the USE_EXACT_ARITH symbol,
+	and indicates that Perl should load and enable the exact_arith
+        pragma at startup.
+        It also unconditionally defines the PERL_EXACT_ARITH symbol.
+	Available since cperl 5.27.2.
+	Defaults to undef.
+
 useithreads (usethreads.U):
 	This variable conditionally defines the USE_ITHREADS symbol,
 	and indicates that Perl should be built to use the interpreter-based

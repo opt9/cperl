@@ -1442,7 +1442,7 @@ my @more_Names;            # Some code point names are compound; this is used
 my $MIN_FRACTION_LENGTH = 3; # How many digits of a floating point number at
                            # the minimum before we consider it equivalent to a
                            # candidate rational
-my $MAX_FLOATING_SLOP = 10 ** - $MIN_FRACTION_LENGTH; # And in floating terms
+my $MAX_FLOATING_SLOP = 0.001; # 10 ** - $MIN_FRACTION_LENGTH; # in floating terms
 
 # These store references to certain commonly used property objects
 my $age;
