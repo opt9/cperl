@@ -1396,7 +1396,7 @@
 #define my_lstat_flags(a)	Perl_my_lstat_flags(aTHX_ a)
 #define my_stat_flags(a)	Perl_my_stat_flags(aTHX_ a)
 #define my_strerror(a)		Perl_my_strerror(aTHX_ a)
-#define my_unexec()		Perl_my_unexec(aTHX)
+#define my_unexec(a)		Perl_my_unexec(aTHX_ a)
 #define newASSIGNOP_maybe_const(a,b,c)	Perl_newASSIGNOP_maybe_const(aTHX_ a,b,c)
 #define newATTRSUB_x(a,b,c,d,e,f)	Perl_newATTRSUB_x(aTHX_ a,b,c,d,e,f)
 #define newSTUB(a,b)		Perl_newSTUB(aTHX_ a,b)
