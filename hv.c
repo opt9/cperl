@@ -3551,6 +3551,12 @@ S_unshare_hek_or_pvn(pTHX_ const HEK *hek, const char *str, I32 len, U32 hash)
     }
 }
 
+/* replaces HeNEXT(he) chains */
+HEK*
+S_HekNEXT(HEK* hek) {
+    return hek++;
+}
+
 /*
 =for apidoc share_hek
 
@@ -3566,6 +3572,7 @@ See L<perlapi/newSVpvn_share>.
 
 =cut
 */
+
 HEK *
 Perl_share_hek(pTHX_ const char *str, I32 len, U32 hash)
 {
