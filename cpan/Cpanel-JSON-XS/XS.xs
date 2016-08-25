@@ -217,6 +217,10 @@ mingw_modfl(long double x, long double *ip)
 #   define RITER_T I32
 # endif
 #endif
+/* not defined in perl5 */
+#ifndef HeKSVKEY
+#define HeKSVKEY(he) HeKLEN(he) == HEf_SVKEY
+#endif
 
 /* types */
 #define JSON_TYPE_SCALAR       0x0000
@@ -1061,7 +1065,7 @@ retrieve_hk (pTHX_ HE *he, char **key, I32 *klen)
 {
   int utf8;
 
-  if (HeKLEN (he) == HEf_SVKEY)
+  if (HeKSVKEY(he))
     {
       STRLEN len;
       SV *sv = HeSVKEY (he);
