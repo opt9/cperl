@@ -1649,6 +1649,7 @@
 #    if defined(PERL_IN_OP_C)
 #define cv_check_inline(a,b)	S_cv_check_inline(aTHX_ a,b)
 #define cv_do_inline(a,b,c,d)	S_cv_do_inline(aTHX_ a,b,c,d)
+#define op_clone_sv(a)		S_op_clone_sv(aTHX_ a)
 #    endif
 #  endif
 #  if defined(PERL_IN_AV_C)
@@ -1813,6 +1814,7 @@
 #define op_check_type(a,b,c,d)	S_op_check_type(aTHX_ a,b,c,d)
 #define op_const_sv(a,b,c)	S_op_const_sv(aTHX_ a,b,c)
 #define op_destroy(a)		S_op_destroy(aTHX_ a)
+#define op_fixup(a,b,c)		S_op_fixup(aTHX_ a,b,c)
 #define op_gv_set(a,b)		S_op_gv_set(aTHX_ a,b)
 #define op_integerize(a)	S_op_integerize(aTHX_ a)
 #define op_next_nn		S_op_next_nn

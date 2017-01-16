@@ -1130,7 +1130,8 @@ in	|int	|match_type1	|const U32 sig|core_types_t arg1
 in	|int	|match_type2	|const U32 sig|core_types_t arg1|core_types_t arg2
 #ifdef PERL_INLINE_SUBS
 s	|bool	|cv_check_inline|NN const OP *o|NN CV *compcv
-s	|OP*	|cv_do_inline|NN const OP *o|NN const OP *cvop|NN CV *cv|bool meth
+s	|OP*	|cv_do_inline   |NN const OP *o|NN const OP *cvop|NN CV *cv|bool meth
+s	|OP*	|op_clone_sv	|NN OP* o
 #endif
 i	|OP*	|new_entersubop |NN GV* gv |NN OP* arg
 #endif
@@ -2332,6 +2333,7 @@ s	|bool	|mderef_uoob_gvsv|NN OP* o|NN SV* idx
 #endif
 s	|bool	|mderef_uoob_targ|NN OP* o|PADOFFSET targ
 s	|bool	|peep_leaveloop	|NN BINOP* leave|NN OP* from|NN OP* to
+s	|OP*	|op_fixup	|NULLOK OP *old|NULLOK OP *newop|U32 init
 #endif
 
 XpR	|void*	|Slab_Alloc	|size_t sz
