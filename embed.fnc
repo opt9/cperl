@@ -1102,6 +1102,7 @@ Ap	|OP*	|op_lvalue_flags|NULLOK OP* o|I32 type|U32 flags
 p	|void	|optimize_optree|NN OP* o
 p	|void	|finalize_optree	|NN OP* o
 #if defined(PERL_IN_OP_C)
+s	|void	|linearize_optree|NN CV* cv|NN OP* o
 s	|void	|cant_declare	|NN OP* o
 s	|void	|optimize_op	|NN OP* o
 s	|void	|finalize_op	|NN OP* o
