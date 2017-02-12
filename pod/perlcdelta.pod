@@ -79,6 +79,32 @@ L<[perl #105920]|https://rt.perl.org/Public/Bug/Display.html?id=105920>.
 Parsing NUL bytes is now consistent from files with eval string.
 C<\0> delimited C<q> quote is still valid though.
 
+=head2 C3 MRO is the new default
+
+The default MRO switched from the DFS (depth-first-search) to the
+recommended C3 algorithm, which was previously optional. All object
+system based on inheritence need to use C3 to avoid the diamond
+problem. And this change speeds it up, avoiding run-time loading of
+F<ext/mro>.
+
+=head1 Security
+
+XXX Any security-related notices go here.  In particular, any security
+vulnerabilities closed should be noted here rather than in the
+L</Selected Bug Fixes> section.
+
+[ List each security issue as a =head2 entry ]
+
+=head1 Incompatible Changes
+
+XXX For a release on a stable branch, this section aspires to be:
+
+    There are no changes intentionally incompatible with 5.XXX.XXX
+    If any exist, they are bugs, and we request that you submit a
+    report.  See L</Reporting Bugs> below.
+
+[ List each incompatible change as a =head2 entry ]
+
 =head1 Deprecations
 
 XXX Any deprecated features, syntax, modules etc. should be listed here.
