@@ -351,6 +351,7 @@ invert_opset function.
 
     leaveeval -- needed for Safe to operate, is safe
 		 without entereval
+    typeof
 
 =item :base_mem
 
