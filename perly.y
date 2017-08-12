@@ -49,8 +49,8 @@
 
 %token <opval> BAREWORD METHOD FUNCMETH THING PMFUNC PRIVATEREF QWLIST
 %token <opval> FUNC0OP FUNC0SUB UNIOPSUB LSTOPSUB
-%token <opval> PLUGEXPR PLUGSTMT CLASSDECL
-%token <pval> LABEL
+%token <opval> PLUGEXPR PLUGSTMT CLASSDECL MACRODEF
+%token <pval> LABEL MACRO
 %token <ival> FORMAT SUB METHDECL MULTIDECL ANONSUB PACKAGE USE
 %token <ival> WHILE UNTIL IF UNLESS ELSE ELSIF CONTINUE FOR
 %token <ival> GIVEN WHEN DEFAULT
@@ -505,6 +505,8 @@ barestmt:	PLUGSTMT
 			      parser->copline = (line_t)$2;
                           class_role_finalize($1);
 			}
+	|	MACRO MACRODEF block
+		        { $$ = macrodef($2,$3); }
 	|	sideff ';'
 			{
 			  $$ = $1;

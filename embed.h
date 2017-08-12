@@ -992,6 +992,7 @@
 #define sv_only_taint_gmagic	S_sv_only_taint_gmagic
 #define swash_fetch(a,b,c)	Perl_swash_fetch(aTHX_ a,b,c)
 #define swash_init(a,b,c,d,e)	Perl_swash_init(aTHX_ a,b,c,d,e)
+#define valid_token		Perl_valid_token
 #define validate_proto(a,b,c,d,e)	Perl_validate_proto(aTHX_ a,b,c,d,e)
 #define vivify_defelem(a)	Perl_vivify_defelem(aTHX_ a)
 #define yylex()			Perl_yylex(aTHX)
@@ -1335,6 +1336,7 @@
 #define keyword(a,b,c)		Perl_keyword(aTHX_ a,b,c)
 #define list(a)			Perl_list(aTHX_ a)
 #define localize(a,b)		Perl_localize(aTHX_ a,b)
+#define macrodef(a,b)		Perl_macrodef(aTHX_ a,b)
 #define magic_clear_all_env(a,b)	Perl_magic_clear_all_env(aTHX_ a,b)
 #define magic_cleararylen_p(a,b)	Perl_magic_cleararylen_p(aTHX_ a,b)
 #define magic_clearenv(a,b)	Perl_magic_clearenv(aTHX_ a,b)

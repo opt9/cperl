@@ -3150,6 +3150,12 @@ PERL_CALLCONV I32	Perl_looks_like_number(pTHX_ SV *const sv)
 #define PERL_ARGS_ASSERT_LOOKS_LIKE_NUMBER	\
 	assert(sv)
 
+PERL_CALLCONV OP*	Perl_macrodef(pTHX_ OP* def, OP* block)
+			__attribute__nonnull__(pTHX_1)
+			__attribute__nonnull__(pTHX_2);
+#define PERL_ARGS_ASSERT_MACRODEF	\
+	assert(def); assert(block)
+
 PERL_CALLCONV int	Perl_magic_clear_all_env(pTHX_ SV* sv, MAGIC* mg)
 			__attribute__nonnull__(pTHX_1)
 			__attribute__nonnull__(pTHX_2);
@@ -6738,6 +6744,12 @@ PERL_CALLCONV bool	Perl_valid_ident(pTHX_ SV* sv, bool strict_names, bool allow_
 			__attribute__nonnull__(pTHX_4);
 #define PERL_ARGS_ASSERT_VALID_IDENT	\
 	assert(sv); assert(normalizep)
+
+PERL_CALLCONV int	Perl_valid_token(const char *token)
+			__attribute__global__
+			__attribute__nonnull__(1);
+#define PERL_ARGS_ASSERT_VALID_TOKEN	\
+	assert(token)
 
 #ifndef PERL_NO_INLINE_FUNCTIONS
 PERL_STATIC_INLINE UV	Perl_valid_utf8_to_uvchr(const U8 *s, STRLEN *retlen)
