@@ -1,5 +1,5 @@
 package experimental;
-$experimental::VERSION = '0.019_01c'; #cperl fixed lexical_topic
+$experimental::VERSION = '0.019_02c'; #cperl fixed lexical_topic
 use strict;
 use warnings;
 use version ();
@@ -38,6 +38,7 @@ my %min_version = (
 	switch          => '5.10.0',
 	unicode_eval    => '5.16.0',
 	unicode_strings => '5.12.0',
+	macros          => '5.28.0c',
 );
 my %max_version = (
 	autoderef       => '5.23.1',
@@ -187,6 +188,10 @@ This was added in perl 5.10.0 and removed in perl 5.23.4.
 
 This was added in 5.18.0.
 
+=item * C<macros> - allow the use macro "string" <grammar>...
+
+This was added in cperl 5.28.0.
+
 =item * C<postderef> - allow the use of postfix dereferencing expressions,
 including in interpolating strings
 
@@ -219,7 +224,7 @@ This was added in perl 5.10.0.
 
 =item * C<win32_perlio> - allows the use of the :win32 IO layer.
 
-This was added on perl 5.22.0.
+This was added in perl 5.22.0.
 
 =back
 

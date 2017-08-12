@@ -36,7 +36,8 @@ my %feature = (
     unicode_strings => 'unicode',
     fc              => 'fc',
     signatures      => 'signatures',
-    shaped_arrays   => 'shaped_arrays'
+    shaped_arrays   => 'shaped_arrays',
+    macros          => 'macros',
 );
 
 # NOTE: If a feature is ever enabled in a non-contiguous range of Perl
@@ -56,6 +57,9 @@ my %feature_bundle = (
     "5.23"   =>	[qw(say state switch unicode_strings unicode_eval
 		    evalbytes current_sub fc shaped_arrays
                     postderef_qq)],
+#    "5.27"   => [qw(say state switch unicode_strings unicode_eval
+#                    evalbytes current_sub fc shaped_arrays
+#                    postderef_qq macros)],
 );
 $feature_bundle{"5.10"} = $feature_bundle{"5.9.5"};
 $feature_bundle{"5.13"} = $feature_bundle{"5.11"};
@@ -382,7 +386,7 @@ read_only_bottom_close_and_rename($h);
 __END__
 package feature;
 
-our $VERSION = '1.49_01';
+our $VERSION = '1.49_02';
 
 FEATURES
 
@@ -692,7 +696,7 @@ corresponding C<0> values. You can also use native types.
 Note that multidimensional arrays will be supported soon, using the
 same feature name. Similar to perl6.
 
-This feature is available from cperl 5.22 onwards.
+This feature is available from cperl 5.22 onwards, and always enabled in cperl.
 
 =head2 The 'declared_refs' feature
 
@@ -709,6 +713,20 @@ conjunction with the "refaliasing" feature.  See L<perlref/Declaring a
 Reference to a Variable> for examples.
 
 This feature is available from Perl 5.26 onwards.
+
+=head2 The 'macros' feature
+
+B<cperl>: This feature is only available in cperl since 5.28c.
+
+This allows adding macro definitions to add grammar rules to the parser,
+A new grammar consists of a series of existing grammars, i.e. terminal or
+non-terminal tokens or strings, and a replacement block.
+A grammar can be optionally named to seperate two identical grammars.
+The macro name is usually the first non-grammar string.
+
+    macro <a:expr> "?=" <b:expr> {
+        a = b if defined a;
+    }
 
 =head1 FEATURE BUNDLES
 
