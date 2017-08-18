@@ -36,6 +36,13 @@ C<my @a[];> without assignment is still a syntax error.
 
 See L<[cperl #210]|https://github.com/perl11/cperl/issues/210>
 
+=head2 exact_arith
+
+Zero-overhead exact integer arithmetic with automatic promotion to
+L<Math::BigInt::GMP> or L<Math::BigInt> on integer overflows. Can be
+turned on globally via C<-Duseexactarith> or lexically via C<use
+exact_arith;>.
+
 =head1 Security
 
 =head2 Disallow illegal glob with embedded NUL
