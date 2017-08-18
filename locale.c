@@ -3363,7 +3363,12 @@ Perl__is_in_locale_category(pTHX_ const bool compiling, const int category)
     /* The pseudo-category 'not_characters' is -1, so just add 1 to each to get
      * a valid unsigned */
     assert(category >= -1);
-    return cBOOL(SvUV(categories) & (1U << (category + 1)));
+    /* The 0 check is for the old HINTS_LOCALE via use locale;
+       The -1 check is for IN_UNI_8_BIT
+     */
+    return cBOOL(
+                 (category != -1 && SvUV(categories) == 0)
+                 || SvUV(categories) & (1U << (category + 1)) );
 }
 
 char *
