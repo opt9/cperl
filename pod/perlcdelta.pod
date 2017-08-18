@@ -463,8 +463,6 @@ Use L<XXX> with program names to get proper documentation linking. ]
 
 Added the C<-Duseexactarith> Configure argument to use the new
 L<exact_arith> pragma by default. This is then similar to perl6.
-There's also a new C<PERL_EXACT_ARITH> definition turned on by default
-to specify that exact_arith can be used.
 
 =back
 

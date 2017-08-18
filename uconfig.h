@@ -5350,14 +5350,9 @@
 /*#define	USE_SANITIZE_ADDRESS		/ **/
 #endif
 
-/* PERL_EXACT_ARITH:
- *	This symbol, if defined, indicates that Perl can use exact_arith
- *      (i.e. Math::BigInt and the exact_arith pragma is available).
- */
 /* USE_EXACT_ARITH:
  *	This symbol, if defined, indicates that Perl uses exact_arith by default.
  */
-#define PERL_EXACT_ARITH
 #ifndef USE_EXACT_ARITH
 /*#define	USE_EXACT_ARITH		/ **/
 #endif
@@ -5381,6 +5376,6 @@
 #endif
 
 /* Generated from:
- * 572c49d7ee21c70915ee44f7a94b8d3a6dd77b35b5f777cae4f803ed7ca526cf config_h.SH
+ * dc3bc2ed80a4a9c07c78747dbbddc42578a164e5fa6ae141d30afc2077985c26 config_h.SH
  * a8816fe288ceb0ca791053f5f3fc9d4a9224e47ffab1cc21fc6745d40e27cf3f uconfig.sh
  * ex: set ro: */
