@@ -79,6 +79,12 @@ L<[perl #105920]|https://rt.perl.org/Public/Bug/Display.html?id=105920>.
 Parsing NUL bytes is now consistent from files with eval string.
 C<\0> delimited C<q> quote is still valid though.
 
+=head2 HINTS_LOCALE_PARTIAL
+
+The scalarC< HINTS_LOCALE_PARTIAL> hints bit is gone, you need to look at
+the C<%^H> value. For backward compatibility the value of
+C<HINTS_LOCALE_PARTIAL> is now the same as C<HINTS_LOCALE>.
+
 =head1 Deprecations
 
 XXX Any deprecated features, syntax, modules etc. should be listed here.

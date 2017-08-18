@@ -29,8 +29,7 @@ our %feature_bundle = (
     "5.10"    => [qw(array_base say state switch)],
     "5.11"    => [qw(array_base say state switch unicode_strings)],
     "5.15"    => [qw(current_sub evalbytes fc say state switch unicode_eval unicode_strings)],
-    "5.21"    => [qw(current_sub evalbytes fc say shaped_arrays state switch unicode_eval unicode_strings)],
-    "5.23"    => [qw(current_sub evalbytes fc postderef_qq say shaped_arrays state switch unicode_eval unicode_strings)],
+    "5.23"    => [qw(current_sub evalbytes fc postderef_qq say state switch unicode_eval unicode_strings)],
     "all"     => [qw(array_base bitwise current_sub declared_refs evalbytes fc postderef_qq refaliasing say shaped_arrays signatures state switch unicode_eval unicode_strings)],
     "default" => [qw(array_base)],
 );
@@ -43,7 +42,8 @@ $feature_bundle{"5.17"} = $feature_bundle{"5.15"};
 $feature_bundle{"5.18"} = $feature_bundle{"5.15"};
 $feature_bundle{"5.19"} = $feature_bundle{"5.15"};
 $feature_bundle{"5.20"} = $feature_bundle{"5.15"};
-$feature_bundle{"5.22"} = $feature_bundle{"5.21"};
+$feature_bundle{"5.21"} = $feature_bundle{"5.15"};
+$feature_bundle{"5.22"} = $feature_bundle{"5.15"};
 $feature_bundle{"5.24"} = $feature_bundle{"5.23"};
 $feature_bundle{"5.25"} = $feature_bundle{"5.23"};
 $feature_bundle{"5.26"} = $feature_bundle{"5.23"};
@@ -57,7 +57,7 @@ my %noops = (
 
 our $hint_shift   = 26;
 our $hint_mask    = 0x1c000000;
-our @hint_bundles = qw( default 5.10 5.11 5.15 5.21 5.23 );
+our @hint_bundles = qw( default 5.10 5.11 5.15 5.23 );
 
 # This gets set (for now) in $^H as well as in %^H,
 # for runtime speed of the uc/lc/ucfirst/lcfirst functions.
@@ -355,8 +355,9 @@ The declared size is always equal to the actual size, the array is
 pre-filled with undef. Thus shaped arrays are faster to access at run-time
 than aelemfast (constant indices).
 
-If declared with a L<perltypes/"coretypes">, the elements are preinitialized with the
-corresponding C<0> values. You can also use native types.
+If declared with a L<perltypes/"coretypes">, the elements are
+preinitialized with the corresponding C<0> values. You can also use
+native types.
 
    my Int @a[10]; # pre-declares 10 elements with IV's of value 0
    my UInt @a[10];# with UV's of value 0
@@ -370,7 +371,8 @@ corresponding C<0> values. You can also use native types.
 Note that multidimensional arrays will be supported soon, using the
 same feature name. Similar to perl6.
 
-This feature is available from cperl 5.22 onwards.
+This feature is available from cperl 5.22 onwards, and doesn't need to
+be turned on.
 
 =head2 The 'declared_refs' feature
 
@@ -419,19 +421,18 @@ The following feature bundles are available:
 
   :5.22     say state switch unicode_strings
             unicode_eval evalbytes current_sub fc
-            shaped_arrays
 
   :5.24     say state switch unicode_strings
             unicode_eval evalbytes current_sub fc
-            shaped_arrays postderef_qq
+            postderef_qq
 
   :5.26     say state switch unicode_strings
             unicode_eval evalbytes current_sub fc
-            shaped_arrays postderef_qq
+            postderef_qq
 
   :5.28     say state switch unicode_strings
             unicode_eval evalbytes current_sub fc
-            shaped_arrays postderef_qq
+            postderef_qq
 
 The C<:default> bundle represents the feature set that is enabled before
 any C<use feature> or C<no feature> declaration.
