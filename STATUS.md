@@ -94,7 +94,7 @@ For all versions see [bench-all/](bench-all/index.html)
 * cperl has besides java the only secure hash table implementation of all popular
   dynamic scripting languages or static languages with internal hash table support.
   Other secure hash tables are only found in glibc, bsd or unix kernels or various
-  public services.
+  public services. It's still the slowest and worst written though.
 * seperate XS and PP XS calls dynamically with a new enterxssub op
 * -DI and -Dk
 * added many unicode ops
@@ -154,6 +154,7 @@ For all versions see [bench-all/](bench-all/index.html)
 In the master branch also:
 * exact_arith: perl6-like exact integer arithmetic, but much faster.
   Only promotes to bigint on overflows.
+* many more and much better dump functions.
 
 Most of them only would have a chance to be merged upstream if a p5p
 committer would have written it.
