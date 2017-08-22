@@ -11376,7 +11376,7 @@ Perl_op_clone_oplist(pTHX_ OP* o, OP* last, bool init) {
 static OP*
 S_op_clone_sv(pTHX_ OP* o) {
     const OPCODE type = o->op_type;
-    PERL_ARGS_ASSERT_OP_CLONE_SV
+    PERL_ARGS_ASSERT_OP_CLONE_SV;
     switch (type) {
     case OP_GV:
     case OP_GVSV:
@@ -20643,7 +20643,7 @@ Perl_rpeep(pTHX_ OP *o)
 #endif
                         gvop = o2; /* gvsv for variable method parts, left or right */
                         /* delete the null ops between op_gv and op_entersub
-                           for easier arity checks */
+                           for easier arity checks. there are not being pointed to. */
 #ifdef PERL_FREE_NULLOPS
                         for (; o2 && OP_TYPE_IS(o2->op_next, OP_NULL) && i<8; i++) {
                             OP* on = o2->op_next;
@@ -20732,7 +20732,8 @@ Perl_rpeep(pTHX_ OP *o)
                                             "Invalid method call on class subroutine %" SVf,
                                             SVfARG(cv_name(cv,NULL,CV_NAME_NOMAIN)));
                                     /* convert static method to normal sub */
-/* See http://blogs.perl.org/users/rurban/2011/06/how-perl-calls-subs-and-methods.html */
+                                    /* See http://blogs.perl.org/users/rurban/2011/06/
+                                           how-perl-calls-subs-and-methods.html */
                                     /* remove bareword-ness of class name */
                                     o->op_next->op_private &=
                                         ~(OPpCONST_BARE|OPpCONST_STRICT);
@@ -20778,9 +20779,6 @@ Perl_rpeep(pTHX_ OP *o)
                             }
                         }
 #ifdef PERL_INLINE_SUBS
-                    if (gv && ((SvTYPE(gv) == SVt_PVGV && (cv = GvCV(gv)))
-                            || (SvROK(gv) && (cv = (CV*)SvRV((SV*)gv))
-                                          && SvTYPE(cv) == SVt_PVCV))) {
                         if (cv && CvINLINABLE(cv) && !meth) {
                             if (cop_hints_fetch_pvs(PL_curcop, "inline", REFCOUNTED_HE_EXISTS)) {
                                 DEBUG_k(Perl_deb(aTHX_ "rpeep: skip inline sub %" SVf ", no inline\n",
@@ -20797,8 +20795,8 @@ Perl_rpeep(pTHX_ OP *o)
                                 }
                             }
                         }
-                    }
 #endif
+                    }
                 }
             }
 
