@@ -11543,8 +11543,7 @@ S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
             return NULL;
         }
         /* ctl ops need a block */
-        if (type == OP_ENTERSUB
-            || type == OP_ENTERXSSUB
+        if (IS_SUB_TYPE(type)
             || type == OP_UNSTACK
             || type >= OP_ENTER
             || (type >= OP_CALLER && type <= OP_RESET)
@@ -20645,9 +20644,9 @@ Perl_rpeep(pTHX_ OP *o)
                         /* delete the null ops between op_gv and op_entersub
                            for easier arity checks. there are not being pointed to. */
 #ifdef PERL_FREE_NULLOPS
-                        for (; o2 && OP_TYPE_IS(o2->op_next, OP_NULL) && i<8; i++) {
+                        for (; o2 && IS_NULL_OP(OpNEXT(o2)) && i<8; i++) {
                             OP* on = o2->op_next;
-                            if (on && IS_TYPE(on, NULL)) {
+                            if (on && IS_NULL_OP(on)) {
                                 OP* tmp = on->op_next;
                                 DEBUG_k(j++);
                                 /* XXX fixup kids and siblings also? */
