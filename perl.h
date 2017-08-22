@@ -2437,8 +2437,8 @@ typedef AV PAD;
 typedef struct padnamelist PADNAMELIST;
 typedef struct padname PADNAME;
 
-/* enable PERL_OP_PARENT by default. not with inlined cperl yet */
-#if !defined(PERL_OP_PARENT) && !defined(PERL_NO_OP_PARENT) && !defined(USE_CPERL)
+/* enable PERL_OP_PARENT by default. */
+#if !defined(PERL_OP_PARENT) && !defined(PERL_NO_OP_PARENT)
 #  define PERL_OP_PARENT
 #endif
 
@@ -7269,6 +7269,7 @@ INFNAN_NV_U8_DECL PL_nan;
 /* temporarily only. will go away with 5.27.3 */
 /* #define OLD_FIELDS_GV / **/
 #define FIELDS_DYNAMIC_PADSIZE /* */
+#undef  PERL_INLINE_SUBS /* */
 
 #undef croak_no_modify_sv
 #define croak_no_modify_sv(sv) Perl_croak_no_modify_sv(aTHX_ (SV*)sv,__FILE__,__LINE__)

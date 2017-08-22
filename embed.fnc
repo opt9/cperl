@@ -1131,9 +1131,9 @@ in	|int	|match_type2	|const U32 sig|core_types_t arg1|core_types_t arg2
 #ifdef PERL_INLINE_SUBS
 s	|bool	|cv_check_inline|NN const OP *o|NN CV *compcv
 s	|OP*	|cv_do_inline   |NN const OP *o|NN const OP *cvop|NN CV *cv|bool meth
-s	|OP*	|op_clone_sv	|NN OP* o
 #endif
 i	|OP*	|new_entersubop |NN GV* gv |NN OP* arg
+s	|OP*	|op_clone_sv	|NN OP* o
 #endif
 : Used in op.c and pp_sys.c
 p	|int	|mode_from_discipline	|NULLOK const char* s|STRLEN len
