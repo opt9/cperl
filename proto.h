@@ -8889,10 +8889,10 @@ STATIC bool	S_process_special_blocks(pTHX_ I32 floor, const char *const fullname
 #define PERL_ARGS_ASSERT_PROCESS_SPECIAL_BLOCKS	\
 	assert(fullname); assert(gv); assert(cv)
 
-STATIC void	S_prune_chain_head(OP** op_p)
+STATIC void	S_prune_chain_head(OP** opp)
 			__attribute__nonnull__(1);
 #define PERL_ARGS_ASSERT_PRUNE_CHAIN_HEAD	\
-	assert(op_p)
+	assert(opp)
 
 STATIC OP*	S_ref_array_or_hash(pTHX_ OP* cond);
 STATIC OP*	S_refkids(pTHX_ OP* o, I32 type);

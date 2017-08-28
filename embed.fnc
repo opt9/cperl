@@ -2300,7 +2300,7 @@ s	|bool	|process_special_blocks	|I32 floor \
 					|NN GV *const gv|NN CV *const cv
 s	|void	|clear_special_blocks	|NN const char *const fullname\
 					|NN GV *const gv|NN CV *const cv
-sn	|void	|prune_chain_head 	|NN OP** op_p
+sn	|void	|prune_chain_head 	|NN OP** opp
 s	|const char*|typename 	|NULLOK const HV* stash
 in	|OP*	|op_next_nn 	|NN OP* o
 in	|OP*	|op_prev_nn 	|NN const OP* us
