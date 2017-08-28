@@ -16364,6 +16364,7 @@ our %delta = (
             'PerlIO::scalar'        => '0.29_01',
             'PerlIO::via'           => '0.17_01',
             'Pod::Checker'          => '1.73_01',
+            'Opcode'                => '1.40_03c',
             'OS2::Process'          => '1.12_01',
             'Scalar::Util'          => '1.49_10',
             'Sub::Util'             => '1.49_10',

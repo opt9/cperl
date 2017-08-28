@@ -404,6 +404,10 @@ and New Warnings
 
 =over 4
 
+=item L<Opcode> 1.39_03c
+
+Added the new setstate and keepstate ops, variants of nextstate.
+
 =item *
 
 XXX L<message|perldiag/"message">
