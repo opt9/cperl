@@ -981,6 +981,7 @@ $(LIBPERL): $& $(perllib_dep) $(DYNALOADER) $(LIBPERLEXPORT)
 
 $(MINIPERL_EXE): lib/buildcustomize.pl
 
+WRITE_BUILDCUSTOMIZE = -f write_buildcustomize.pl
 !NO!SUBS!
 
 	case "${osname}${osvers}" in
@@ -990,7 +991,7 @@ lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
 	-@rm -f miniperl.xok
 	$(LD) $(CLDFLAGS) -o $(MINIPERL_EXE) $(miniperl_objs) $(libs)
 #	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
-	$(MINIPERL) -f write_buildcustomize.pl
+	$(MINIPERL) $(WRITE_BUILDCUSTOMIZE)
 !NO!SUBS!
 		;;
 	aix*)
@@ -1000,7 +1001,7 @@ lib/buildcustomize.pl: $& $(miniperl_objs)
 	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
 	$(MINIPERL) make_patchnum.pl && \
 	  $(MINIPERL) configpm && \
-	  $(MINIPERL) -f write_buildcustomize.pl
+	  $(MINIPERL) $(WRITE_BUILDCUSTOMIZE)
 !NO!SUBS!
 		;;
 	next4*)
@@ -1010,7 +1011,7 @@ lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
 	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
 	$(MINIPERL) make_patchnum.pl && \
 	  $(MINIPERL) configpm && \
-	  $(MINIPERL) -f write_buildcustomize.pl
+	  $(MINIPERL) $(WRITE_BUILDCUSTOMIZE)
 !NO!SUBS!
 		;;
 	darwin*)
@@ -1043,7 +1044,7 @@ lib/buildcustomize.pl: $& $(miniperl_objs) write_buildcustomize.pl
 	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
 	$(MINIPERL) make_patchnum.pl && \
 	  $(MINIPERL) configpm && \
-	  $(MINIPERL) -f write_buildcustomize.pl
+	  $(MINIPERL) $(WRITE_BUILDCUSTOMIZE)
 !NO!SUBS!
 		;;
 	*)
@@ -1056,7 +1057,7 @@ lib/buildcustomize.pl: \$& \$(miniperl_dep) write_buildcustomize.pl
 	\$(LDLIBPTH) ./miniperl\$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
 	\$(MINIPERL) make_patchnum.pl && \
 	  \$(MINIPERL) configpm && \
-	  \$(MINIPERL) -f write_buildcustomize.pl 'osname' "$osname"
+	  \$(MINIPERL) $(WRITE_BUILDCUSTOMIZE) 'osname' "$osname"
 !GROK!THIS!
 		else
 			$spitshell >>$Makefile <<'!NO!SUBS!'
@@ -1066,7 +1067,7 @@ lib/buildcustomize.pl: $& $(miniperl_dep) write_buildcustomize.pl
 	$(LDLIBPTH) ./miniperl$(HOST_EXE_EXT) -w -Ilib -Idist/Exporter/lib -MExporter -e '<?>' || sh -c 'echo >&2 Failed to build miniperl.  Please run make minitest; exit 1'
 	$(MINIPERL) make_patchnum.pl && \
 	  $(MINIPERL) configpm && \
-	  $(MINIPERL) -f write_buildcustomize.pl
+	  $(MINIPERL) $(WRITE_BUILDCUSTOMIZE)
 !NO!SUBS!
 		fi
 		;;
