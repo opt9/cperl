@@ -308,11 +308,13 @@ Suppress new Autovivified hash slice warning
 
 formatting, cperl enhancements
 
+=item L<Opcode> 1.39_03c
+
+Added the new setstate and keepstate ops, variants of nextstate.
+
 =item L<OS2::Process>  1.12_01
 
 =item L<PerlIO::scalar> 0.29_01
-
-only comment
 
 =item L<PerlIO::via> 0.17_01
 
