@@ -1129,11 +1129,13 @@ i|core_types_t	|stash_to_coretype|NULLOK const HV* stash
 in	|int	|match_type1	|const U32 sig|core_types_t arg1
 in	|int	|match_type2	|const U32 sig|core_types_t arg1|core_types_t arg2
 #ifdef PERL_INLINE_SUBS
-s	|bool	|cv_check_inline|NN const OP *o|NN CV *compcv
-s	|OP*	|cv_do_inline|NN const OP *o|NN const OP *cvop|NN CV *cv|bool meth
+sM	|bool	|cv_check_inline|NN const OP *o|NN CV *compcv
+sM	|OP*	|cv_do_inline   |NN OP *o|NN OP *cvop|NN CV *cv|bool meth
 #endif
 i	|OP*	|new_entersubop |NN GV* gv |NN OP* arg
+sM	|OP*	|op_clone_sv	|NN OP* o
 #endif
+AMRp	|OP*	|op_clone_oplist|NN OP* o  |NULLOK OP* last|bool init
 : Used in op.c and pp_sys.c
 p	|int	|mode_from_discipline	|NULLOK const char* s|STRLEN len
 Ap	|const char*	|moreswitches	|NN const char* s
@@ -2332,6 +2334,7 @@ s	|bool	|mderef_uoob_gvsv|NN OP* o|NN SV* idx
 #endif
 s	|bool	|mderef_uoob_targ|NN OP* o|PADOFFSET targ
 s	|bool	|peep_leaveloop	|NN BINOP* leave|NN OP* from|NN OP* to
+sM	|OP*	|op_fixup	|NULLOK OP *old|NULLOK OP *newop|U32 init
 #endif
 
 XpR	|void*	|Slab_Alloc	|size_t sz
