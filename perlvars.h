@@ -262,3 +262,7 @@ PERLVARA(G, hash_seed, PERL_HASH_SEED_BYTES, unsigned char) /* perl.c and hv.h *
 #ifdef __VMS
 PERLVAR(G, perllib_sep, char)
 #endif
+
+#ifdef USE_OPPROF
+PERLVAR(G, opprof_io, PerlIO *)
+#endif
