@@ -307,7 +307,7 @@ invert_opset function.
 
 =item :base_core
 
-    null stub scalar pushmark wantarray const defined undef
+    null stub scalar pushmark wantarray const defined undef const2
 
     rv2sv sassign
 
@@ -405,7 +405,7 @@ These are a hotchpotch of opcodes still waiting to be considered
 
     gvsv gv gelem
 
-    padsv padav padhv padcv padany padrange introcv clonecv
+    padsv padav padhv padcv padany padrange introcv clonecv padsv2
 
     once
 

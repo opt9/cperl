@@ -1290,6 +1290,7 @@ Perl_op_clear(pTHX_ OP *o)
         break;
     case OP_CONST:
     case OP_HINTSEVAL:
+    case OP_CONST2:
 	SvREFCNT_dec(cSVOPo->op_sv);
 	cSVOPo->op_sv = NULL;
 #ifdef USE_ITHREADS
@@ -1299,11 +1300,15 @@ Perl_op_clear(pTHX_ OP *o)
 	  instead it lives on. This results in that it could be reused as 
 	  a target later on when the pad was reallocated.
 	**/
-        if(o->op_targ) {
-          pad_swipe(o->op_targ,1);
+        if (o->op_targ) {
+          pad_swipe(o->op_targ, 1);
           o->op_targ = 0;
         }
 #endif
+        if (o->op_type == OP_CONST2) {
+            SvREFCNT_dec((SV*)OpLAST(PL_op));
+            OpLAST(PL_op) = NULL;
+        }
 	break;
     case OP_DUMP:
     case OP_GOTO:
@@ -19585,6 +19590,21 @@ Perl_rpeep(pTHX_ OP *o)
 
                 ASSUME(!(o2->op_flags &
                     ~(OPf_WANT|OPf_PARENS|OPf_REF|OPf_MOD|OPf_SPECIAL)));
+                /* empty flags and private => combine to 2 */
+                if (IS_TYPE(o, PADSV) && !(o->op_flags & OPf_MOD)
+                    && o->op_targ < U16_MAX)
+                {
+                    /* convert o+o2 to padsv2 */
+                    OP *op = newUNOP(OP_PADSV2, o2->op_flags + (o2->op_private<<8), NULL);
+                    op->op_targ =  o->op_targ;
+                    OpFIRST(op) = (OP*)(o2->op_targ);
+                    DEBUG_k(Perl_deb(aTHX_
+                        "rpeep: padsv2 0x%x 0x%x\n", OpFLAGS(o), OpFLAGS(o2)));
+                    op->op_next = o2->op_next;
+                    op->op_sibparent = o2->op_sibparent;
+                    o = o2;
+                    break;
+                }
                 if ((o2->op_flags &
                         (OPf_WANT|OPf_REF|OPf_MOD|OPf_SPECIAL))
                      != (OPf_WANT_SCALAR|OPf_MOD))
@@ -19894,8 +19914,8 @@ Perl_rpeep(pTHX_ OP *o)
 	    }
 	    goto nothin;
 	case OP_NULL:
-	    if (o->op_targ == OP_NEXTSTATE
-		|| o->op_targ == OP_DBSTATE)
+	    if (o->op_targ == OP_NEXTSTATE ||
+		o->op_targ == OP_DBSTATE)
 	    {
 		PL_curcop = ((COP*)o);
 	    }
@@ -19923,7 +19943,7 @@ Perl_rpeep(pTHX_ OP *o)
 	    }
 	    break;
 
-        case OP_PUSHMARK:
+        case OP_PUSHMARK: /* most common next: padsv */
             /* Given
                  5 repeat/DOLIST
                  3   ex-list
