@@ -22714,7 +22714,7 @@ S_add_isa_fields(pTHX_ HV* klass, AV* isa)
         if (strEQc(SvPVX(tmpnam), "Mu"))
             continue;
 
-        curclass = gv_stashsv(tmpnam, 0);
+        curclass = gv_stashsv(tmpnam, GV_ADD);
 #ifdef OLD_FIELDS_GV
         sv_catpvs(tmpnam, "::FIELDS");
         sym = gv_fetchsv(tmpnam, 0, SVt_PVAV);
@@ -22746,7 +22746,8 @@ S_add_isa_fields(pTHX_ HV* klass, AV* isa)
             const PADNAME *pn = PAD_COMPNAME(po);
             char *key;
             I32 klen;
-            if (!pn)
+            /* wrong pad? */
+            if (po > AvFILLp(comppad) || !pn)
                 continue;
             key = PadnamePV(pn);
             klen = PadnameLEN(pn);
@@ -22924,13 +22925,20 @@ S_add_does_methods(pTHX_ HV* klass, AV* does)
                                  klassname));
                     CvGV_set(ncv, sym);
                     CvSTASH_set(ncv, klass);
-                    OP_REFCNT_LOCK;
                     /* TODO: either clone the optree or pessimize oelemfast */
+#if 0
+                    OP_REFCNT_LOCK;
                     CvROOT(ncv)	     = OpREFCNT_inc(CvROOT(cv));
                     if (CvHASSIG(cv))
                         CvSIGOP(ncv) = CvSIGOP(cv);
                     OP_REFCNT_UNLOCK;
                     CvSTART(ncv)     = CvSTART(cv);
+#else
+                    CvROOT(ncv)	     = op_clone_oplist(CvROOT(cv), NULL, TRUE);
+                    CvSTART(ncv)     = LINKLIST(CvROOT(ncv));
+                    if (CvHASSIG(cv))
+                        CvSIGOP(ncv) = CvSTART(ncv)->op_next;
+#endif
                     CvOUTSIDE(ncv)   = CvOUTSIDE(cv); /* ? */
                     CvOUTSIDE_SEQ(ncv) = CvOUTSIDE_SEQ(cv);
                     CvFILE(ncv)   = CvFILE(cv); /* ? */
