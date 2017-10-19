@@ -22714,7 +22714,7 @@ S_add_isa_fields(pTHX_ HV* klass, AV* isa)
         if (strEQc(SvPVX(tmpnam), "Mu"))
             continue;
 
-        curclass = gv_stashsv(tmpnam, 0);
+        curclass = gv_stashsv(tmpnam, GV_ADD);
 #ifdef OLD_FIELDS_GV
         sv_catpvs(tmpnam, "::FIELDS");
         sym = gv_fetchsv(tmpnam, 0, SVt_PVAV);
@@ -22746,7 +22746,8 @@ S_add_isa_fields(pTHX_ HV* klass, AV* isa)
             const PADNAME *pn = PAD_COMPNAME(po);
             char *key;
             I32 klen;
-            if (!pn)
+            /* wrong pad? */
+            if (po > AvFILLp(comppad) || !pn)
                 continue;
             key = PadnamePV(pn);
             klen = PadnameLEN(pn);
@@ -22814,7 +22815,7 @@ S_check_role_field_fixup(pTHX_ HV* klass, HV* newclass, CV* cv, bool doit)
 =for apidoc add_does_methods
 
 Copy all not-existing methods from the parent roles to the class/role.
-Fixup changed oelemfast indices.
+Fixup changed oelem{,fast} indices.
 
 Duplicates are fatal:
 "Method %s from %s already exists in %s during role composition"
@@ -22875,30 +22876,33 @@ S_add_does_methods(pTHX_ HV* klass, AV* does)
                 /* ignore default field accessors, they are created later */
                 if (CvISXSUB(cv) &&
                     field_search(klass, HeKEY(entry), HeKLEN_UTF8(entry), NULL) >= 0) {
-                    DEBUG_kv(Perl_deb(aTHX_ "add_does_methods: ignore field accessor %s::%s\n",
-                                      klassname, HeKEY(entry)));
+                    DEBUG_kv(Perl_deb(aTHX_
+                        "add_does_methods: ignore default field accessor %s::%s\n",
+                        klassname, HeKEY(entry)));
                     SvCUR_set(name, len);
                     continue;
                 }
                 /* We also might have class methods without a GV, but
                    I believe we already vivified them to fat GVs */
-
                 if (UNLIKELY(CvISXSUB(cv))) {
                     if (CvXSUB(cv) == S_Mu_sv_xsub ||
                         CvXSUB(cv) == S_Mu_av_xsub) {
                         DEBUG_kv(Perl_deb(aTHX_
-                            "add_does_methods: ignore other field XS accessor\n"));
+                            "add_does_methods: ignore other field XS accessor %s::%s\n",
+                                          klassname, HeKEY(entry)));
                     }
                     need_copy = FALSE; /* GV alias */
                 }
                 else if (CvCONST(cv)) {
                     need_copy = FALSE; /* GV alias */
                     DEBUG_kv(Perl_deb(aTHX_
-                        "add_does_methods: CvCONST NYI\n"));
+                        "add_does_methods: CvCONST %s::%s NYI\n",
+                        klassname, HeKEY(entry)));
                 }
                 else if (CvMULTI(cv)) {
                     DEBUG_kv(Perl_deb(aTHX_
-                        "add_does_methods: CvMULTI NYI\n"));
+                        "add_does_methods: CvMULTI %s::%s NYI\n",
+                        klassname, HeKEY(entry)));
                 }
                 /* compare field indices. might need to create a new method
                    with adjusted indices. #311 */
@@ -22924,13 +22928,20 @@ S_add_does_methods(pTHX_ HV* klass, AV* does)
                                  klassname));
                     CvGV_set(ncv, sym);
                     CvSTASH_set(ncv, klass);
-                    OP_REFCNT_LOCK;
                     /* TODO: either clone the optree or pessimize oelemfast */
+#if 0
+                    OP_REFCNT_LOCK;
                     CvROOT(ncv)	     = OpREFCNT_inc(CvROOT(cv));
                     if (CvHASSIG(cv))
                         CvSIGOP(ncv) = CvSIGOP(cv);
                     OP_REFCNT_UNLOCK;
                     CvSTART(ncv)     = CvSTART(cv);
+#else
+                    CvROOT(ncv)	     = op_clone_oplist(CvROOT(cv), NULL, TRUE);
+                    CvSTART(ncv)     = LINKLIST(CvROOT(ncv));
+                    if (CvHASSIG(cv))
+                        CvSIGOP(ncv) = CvSTART(ncv)->op_next;
+#endif
                     CvOUTSIDE(ncv)   = CvOUTSIDE(cv); /* ? */
                     CvOUTSIDE_SEQ(ncv) = CvOUTSIDE_SEQ(cv);
                     CvFILE(ncv)   = CvFILE(cv); /* ? */
