@@ -1135,7 +1135,9 @@ sM	|OP*	|cv_do_inline   |NN OP *o|NN OP *cvop|NN CV *cv|bool meth
 i	|OP*	|new_entersubop |NN GV* gv |NN OP* arg
 sM	|OP*	|op_clone_sv	|NN OP* o
 #endif
+: This will be replaced by op_clone_optree
 AMRp	|OP*	|op_clone_oplist|NN OP* o  |NULLOK OP* last|bool init
+AMRp	|OP*	|op_clone_optree|NN OP* o  |bool init
 : Used in op.c and pp_sys.c
 p	|int	|mode_from_discipline	|NULLOK const char* s|STRLEN len
 Ap	|const char*	|moreswitches	|NN const char* s
