@@ -19622,7 +19622,8 @@ Perl_pregfree2(pTHX_ REGEXP *rx)
     if (r->mother_re) {
         ReREFCNT_dec(r->mother_re);
     } else {
-        CALLREGFREE_PVT(rx); /* free the private data */
+        if (LIKELY(r->engine))   /* gc() might have deleted this body already */
+            CALLREGFREE_PVT(rx); /* free the private data */
         SvREFCNT_dec(RXp_PAREN_NAMES(r));
     }
     if (r->substrs) {

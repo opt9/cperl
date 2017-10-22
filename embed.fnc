@@ -1664,6 +1664,11 @@ Apd	|void	|sv_free	|NULLOK SV *const sv
 poMX	|void	|sv_free2	|NN SV *const sv|const U32 refcnt
 : Used only in perl.c
 pd	|void	|sv_free_arenas
+#ifdef PERL_CORE
+pd	|void	|opslab_gc      |NN OPSLAB *slab
+#endif
+Apd	|void	|op_gc_arenas
+Apd	|void	|sv_gc_arenas
 Apd	|char*	|sv_gets	|NN SV *const sv|NN PerlIO *const fp|STRLEN append
 Apd	|char*	|sv_grow	|NN SV *const sv|STRLEN newlen
 Apd	|void	|sv_inc		|NULLOK SV *const sv

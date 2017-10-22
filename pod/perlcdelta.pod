@@ -36,6 +36,12 @@ C<my @a[];> without assignment is still a syntax error.
 
 See L<[cperl #210]|https://github.com/perl11/cperl/issues/210>
 
+=head2 Added experimental Internals::gc()
+
+The ability to free empty SV arenas. It's currently unstable, and might be
+replaced by proper arena memory handling later.
+See L<Internals/gc> and L<perlapi/sv_gc_arenas>
+
 =head1 Security
 
 =head2 Disallow illegal glob with embedded NUL
