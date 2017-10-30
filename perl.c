@@ -265,7 +265,7 @@ perl_construct(pTHXx)
     PL_perl_destruct_level = 1;
 #else
     PERL_UNUSED_ARG(my_perl);
-   if (PL_perl_destruct_level > 0)
+    if (PL_perl_destruct_level > 0)
        init_interp();
 #endif
     PL_curcop = &PL_compiling;	/* needed by ckWARN, right away */
@@ -4011,6 +4011,8 @@ S_init_main_stash(pTHX)
 				      SVt_PVHV));
     /* We must init $/ before switches are processed. */
     sv_setpvs(get_svs("/", GV_ADD), "\n");
+
+    SvFLAGS(&PL_sv_freed) = SVTYPEMASK;
 }
 
 /*
@@ -4429,6 +4431,9 @@ Perl_init_stacks(pTHX)
     PL_savestack_ix = 0;
     /*PL_savestack_max lies: it always has SS_MAXPUSH more than it claims */
     PL_savestack_max = size - SS_MAXPUSH;
+
+    SvREFCNT(&PL_arenas_freed) = 1;
+    SvUPGRADE((SV*)&PL_arenas_freed, SVt_PVAV);
 }
 
 #undef REASONABLE
@@ -4452,6 +4457,7 @@ S_nuke_stacks(pTHX)
     Safefree(PL_scopestack_name);
 #endif
     Safefree(PL_savestack);
+    av_clear(&PL_arenas_freed);
 }
 
 void

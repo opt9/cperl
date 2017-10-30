@@ -3420,4 +3420,8 @@ XEop	|void   |dtrace_probe_glob |int mode|NN const char *name|bool is_entry
 XEop	|void   |dtrace_probe_hash |int mode|NN const char *name|bool is_entry
 #endif
 
+#if defined(PERL_IN_SV_C)
+sd	|bool	|in_arenas_freed|NN SV* sv
+#endif
+
 : ex: set ts=8 sts=4 sw=4 noet:

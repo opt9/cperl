@@ -10331,6 +10331,11 @@ STATIC void	S_glob_assign_glob(pTHX_ SV *const dstr, SV *const sstr, const int d
 #define PERL_ARGS_ASSERT_GLOB_ASSIGN_GLOB	\
 	assert(dstr); assert(sstr)
 
+STATIC bool	S_in_arenas_freed(pTHX_ SV* sv)
+			__attribute__nonnull__(pTHX_1);
+#define PERL_ARGS_ASSERT_IN_ARENAS_FREED	\
+	assert(sv)
+
 STATIC SV *	S_more_sv(pTHX);
 STATIC void	S_not_a_number(pTHX_ SV *const sv)
 			__attribute__nonnull__(pTHX_1);
