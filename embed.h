@@ -1961,6 +1961,7 @@
 #define glob_2number(a)		S_glob_2number(aTHX_ a)
 #define glob_assign_glob(a,b,c)	S_glob_assign_glob(aTHX_ a,b,c)
 #define in_arenas_freed(a)	S_in_arenas_freed(aTHX_ a)
+#define in_body_arenas_freed(a,b)	S_in_body_arenas_freed(aTHX_ a,b)
 #define more_sv()		S_more_sv(aTHX)
 #define not_a_number(a)		S_not_a_number(aTHX_ a)
 #define not_incrementable(a)	S_not_incrementable(aTHX_ a)

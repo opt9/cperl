@@ -246,9 +246,10 @@ Public API:
 #  define FREE_SV_DEBUG_FILE(sv) STMT_START { \
 	if ((sv)->sv_debug_file) PerlMemShared_free((sv)->sv_debug_file);  \
     } STMT_END
-#  define DEBUG_SV_SERIAL(sv)						   \
-    DEBUG_m(PerlIO_printf(Perl_debug_log, "0x%" UVxf ": (%05ld) del_SV\n", \
-        PTR2UV(sv), (long)(sv)->sv_debug_serial))
+   /* XXX does not reset PL_debug to -Dm */
+#  define DEBUG_SV_SERIAL(sv)
+   /* DEBUG_m(PerlIO_printf(Perl_debug_log, "0x%" UVxf ": (%05ld) del_SV\n", \
+              PTR2UV(sv), (long)(sv)->sv_debug_serial)) */
 #else
 #  define FREE_SV_DEBUG_FILE(sv)
 #  define DEBUG_SV_SERIAL(sv)	NOOP
@@ -305,7 +306,7 @@ void plant_SV(pTHX_ SV* p)
         DEBUG_mv(static char buf[64];	\
 		 const STRLEN len = my_snprintf(buf, sizeof(buf),    \
                      "%p: uproot_SV -> %p\n", p, SvARENA_CHAIN(p));  \
-                 PerlLIO_write(2, buf, len));           \
+                 PerlLIO_write(2, buf, len)); \
 	PL_sv_root = MUTABLE_SV(SvARENA_CHAIN(p));      \
 	++PL_sv_count;					\
     } STMT_END
@@ -456,19 +457,19 @@ S_del_sv(pTHX_ SV *p)
                         break;
                     }
                 }
-                /* What to do when free list points to the arena?
-                   Keep it or clean the freelist also?
-                   This happens when we just allocated one new arena and
-                   immediately call del_SV on the first entry.
-                */
                 /* XXX assert(PL_sv_root > sva); */
                 if (UNLIKELY(empty && PL_sv_root < svend && PL_sv_root > sva)) {
                     static char buf[128];
                     STRLEN len;
                     DEBUG_m(len = my_snprintf(buf, sizeof(buf),
-                            "del_SV 0x%p: free arena 0x%p [%ld] contains freelist 0x%p\n", p, sva,
-                            (sva-PL_sv_arenaroot)/SvREFCNT(sva), PL_sv_root);
+                              "del_SV 0x%p: free arena 0x%p [%ld] contains freelist 0x%p\n",
+                              p, sva, (sva-PL_sv_arenaroot)/SvREFCNT(sva), PL_sv_root);
                             PerlLIO_write(2, buf, len));
+                    /* What to do when free list points to the arena?
+                       Keep it or clean the freelist also?
+                       This happens when we just allocated one new arena and
+                       immediately call del_SV on the first entry.
+                    */
 #if 1
                     PL_sv_root = NULL;
 #else
@@ -479,8 +480,8 @@ S_del_sv(pTHX_ SV *p)
                     static char buf[128];
                     STRLEN len;
                     DEBUG_m(len = my_snprintf(buf, sizeof(buf),
-                            "del_SV 0x%p: free arena 0x%p [%ld]\n", p, sva,
-                            (sva-PL_sv_arenaroot)/SvREFCNT(sva));
+                                "del_SV 0x%p: free arena 0x%p [%ld]\n", p, sva,
+                                (sva-PL_sv_arenaroot)/SvREFCNT(sva));
                             PerlLIO_write(2, buf, len));
                     if (sva == PL_sv_arenaroot)
                         PL_sv_arenaroot = svanext;
@@ -552,7 +553,7 @@ S_sv_add_arena(pTHX_ char *const ptr, const U32 size, const U32 flags)
     PL_sv_root = sva + 1;
     DEBUG_mv(const STRLEN len = my_snprintf(buf, sizeof(buf),
                "%p: sv_add_arena -> %p\n", sva, PL_sv_root);
-	     PerlLIO_write(2, buf, len));
+             PerlLIO_write(2, buf, len));
     svend = &sva[SvREFCNT(sva) - 1];
     sv = sva + 1;
     while (sv < svend) {
@@ -575,6 +576,38 @@ S_sv_add_arena(pTHX_ char *const ptr, const U32 size, const U32 flags)
     SvFLAGS(sv) = SVTYPEMASK;
 }
 
+static void
+do_body_freed(pTHX_ SV *const sv)
+{
+    const svtype type = SvTYPE(sv);
+    /* REGEXP has too many cross ptrs: mother_re, offs */
+    if (!SvIS_FREED(sv) && PL_body_freed[type] && SvANY(sv)) {
+        if (type == SVt_REGEXP) {
+            if (ReANY(sv)->mother_re && in_arenas_freed((SV*)ReANY(sv)->mother_re))
+                ReANY(sv)->mother_re = (REGEXP*)&PL_sv_freed;
+            if (ReANY(sv)->paren_names && in_arenas_freed((SV*)ReANY(sv)->paren_names))
+                ReANY(sv)->paren_names = (HV*)&PL_sv_freed;
+            if (ReANY(sv)->qr_anoncv && in_arenas_freed((SV*)ReANY(sv)->qr_anoncv))
+                ReANY(sv)->qr_anoncv = (CV*)&PL_sv_freed;
+        } else if (type == SVt_PVLV) {
+            if (LvTARG(sv) && in_arenas_freed(LvTARG(sv)))
+                LvTARG(sv) = &PL_sv_freed;
+        } else if (type == SVt_PVCV) {
+            const HV* stash   = ((XPVCV*)SvANY(sv))->xcv_stash;
+            const CV* outside = ((XPVCV*)SvANY(sv))->xcv_outside;
+            const GV* gv      = ((XPVCV*)SvANY(sv))->xcv_gv_u.xcv_gv;
+            if (stash && in_arenas_freed((SV*)stash))
+                ((XPVCV*)SvANY(sv))->xcv_stash = (HV*)&PL_sv_freed;
+            if (outside && in_arenas_freed((SV*)outside))
+                ((XPVCV*)SvANY(sv))->xcv_outside = (CV*)&PL_sv_freed;
+            if (gv && in_arenas_freed((SV*)gv))
+                ((XPVCV*)SvANY(sv))->xcv_gv_u.xcv_gv = (GV*)&PL_sv_freed;
+        }
+        if (in_body_arenas_freed(type, SvANY(sv)))
+            SvANY(sv) = NULL;
+    }
+}
+
 /*
 =for apidoc in_arenas_freed
 
@@ -585,15 +618,40 @@ Check if the SV is in one of the freed arenas.
 static bool
 S_in_arenas_freed(pTHX_ SV* sv) {
     SSize_t i;
-    SSize_t const fill = AvFILLp(&PL_arenas_freed);
-    int const arenasize = PERL_ARENA_SIZE / sizeof(SV);
+    const AV *const arena = (const AV *const)&PL_arenas_freed;
+    const int arenasize = PERL_ARENA_SIZE / sizeof(SV);
+    SSize_t const fill = AvFILLp(arena);
     PERL_ARGS_ASSERT_IN_ARENAS_FREED;
 
     if (fill < 0)
         return FALSE;
     for (i=0; i<fill; i++) {
-        SV* sva = AvARRAY(&PL_arenas_freed)[0];
+        SV* sva = AvARRAY(arena)[i];
         if (sv > sva && sv <= (sva+arenasize))
+            return TRUE;
+    }
+    return FALSE;
+}
+/*
+=for apidoc in_body_arenas_freed
+
+Check if the sv_any is in one of the freed body arenas.
+REGEXP has too many ptrs to check, leading to stale ptrs.
+
+=cut
+*/
+static bool
+S_in_body_arenas_freed(pTHX_ svtype type, void* xpv) {
+    SSize_t i;
+    SSize_t const fill = AvFILLp(PL_body_freed[type]);
+    PERL_ARGS_ASSERT_IN_BODY_ARENAS_FREED;
+
+    if (fill < 0)
+        return FALSE;
+    for (i=0; i<fill; i++) {
+        const SV* sva = (const SV*)AvARRAY(PL_body_freed[type])[i];
+        const long arenasize = PTR2nat(AvARRAY(PL_body_freed_size[type])[i]);
+        if ((SV*)xpv > sva && (SV*)xpv <= (sva+arenasize))
             return TRUE;
     }
     return FALSE;
@@ -1859,6 +1917,8 @@ Perl_sv_gc_arenas(pTHX)
 
     /* Now scan for freed RVs and replace with sv_freed */
     if (AvFILLp(&PL_arenas_freed) > freed) {
+        DEBUG_mv(PerlIO_printf(Perl_debug_log,
+            "visit PL_arenas_freed for freed RV\n"));
         visit(do_rv_freed, SVf_ROK, SVf_ROK);
     }
 
@@ -1868,8 +1928,8 @@ Perl_sv_gc_arenas(pTHX)
     if (PL_body_arenas) {
         struct arena_set *aroot = (struct arena_set *) PL_body_arenas;
         unsigned int curr = aroot->curr;
+        int yes = 0;
 #ifdef DEBUGGING
-        yes = 0;
         no = 0;
 #endif
         do {
@@ -1881,7 +1941,8 @@ Perl_sv_gc_arenas(pTHX)
                 /* HE chain's are similar */
                 if (!body_size && type == SVt_NULL)
                     body_size = sizeof(HE);
-                if (root && adesc->size && body_size) {
+                /* skip REGEXP, too many cross ptrs to it */
+                if (root && adesc->size && body_size && type != SVt_REGEXP) {
                     /* Check if the body_roots[type] list is empty.
                        The end of the arena has *start == NULL,
                        else points to next (= start+body_size).
@@ -1889,8 +1950,9 @@ Perl_sv_gc_arenas(pTHX)
                        the arena end.
                      */
                     if (*(void**)adesc->arena == NULL) {
-#ifdef DEBUGGING
+                        int i;
                         yes++;
+#ifdef DEBUGGING
                         DEBUG_m(PerlIO_printf(Perl_debug_log,
                             "%7s body_arena [%u] type=%d size=%d 0x%p\n",
                             "gc free", curr, type, body_size, adesc->arena));
@@ -1898,7 +1960,15 @@ Perl_sv_gc_arenas(pTHX)
                         /*if (type != SVt_PVHV)
                             PoisonFree(adesc->arena, adesc->size, char); */
 #endif
-                        av_push(&PL_arenas_freed, newSVuv(PTR2UV(adesc->arena)));
+                        if (!PL_body_freed[type])
+                            PL_body_freed[type] = newAV();
+                        if (!PL_body_freed_size[type])
+                            PL_body_freed_size[type] = newAV();
+                        i = AvFILLp(PL_body_freed[type])+1;
+                        av_extend(PL_body_freed[type], i);
+                        av_extend(PL_body_freed_size[type], i);
+                        AvARRAY(PL_body_freed[type])[i] = (SV*)adesc->arena;
+                        AvARRAY(PL_body_freed_size[type])[i] = (SV*)adesc->size;
                         Safefree(adesc->arena);
                         adesc->arena = NULL;
                         adesc->size = 0;
@@ -1925,6 +1995,12 @@ Perl_sv_gc_arenas(pTHX)
             aroot = aroot->next;
         } while (aroot);
         DEBUG_m(PerlIO_printf(Perl_debug_log, "body_arena gc: %d/%d\n", yes, yes+no));
+
+        if (yes) {
+            DEBUG_mv(PerlIO_printf(Perl_debug_log,
+                "visit PL_body_freed[] for freed sv_any\n"));
+            visit(do_body_freed, 0, 0);
+        }
     }
 #ifdef USE_THREADS
     semaphore--;
@@ -7292,6 +7368,8 @@ Perl_sv_clear(pTHX_ SV *const orig_sv)
 		continue;
 	    }
 #endif
+	    if (sv == &PL_sv_freed)
+                continue;
 	    if (SvIMMORTAL(sv)) {
 		/* make sure SvREFCNT(sv)==0 happens very seldom */
 		SvREFCNT(sv) = SvREFCNT_IMMORTAL;
@@ -7499,6 +7577,8 @@ Perl_sv_free2(pTHX_ SV *const sv, const U32 rc)
             SvREFCNT(sv) = SvREFCNT_IMMORTAL;
             return;
         }
+        if (sv == &PL_sv_freed)
+            return;
         if (! SvIS_FREED(sv))
             sv_clear(sv);
         if (! SvREFCNT(sv)) /* may have have been resurrected */
@@ -7514,7 +7594,7 @@ Perl_sv_free2(pTHX_ SV *const sv, const U32 rc)
         /* this SV's refcnt has been artificially decremented to
          * trigger cleanup */
         return;
-    if (PL_in_clean_all) /* All is fair */
+    if (PL_in_clean_all || sv == &PL_sv_freed) /* All is fair */
         return;
     if (SvIMMORTAL(sv)) {
         /* make sure SvREFCNT(sv)==0 happens very seldom */

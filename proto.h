@@ -10336,6 +10336,11 @@ STATIC bool	S_in_arenas_freed(pTHX_ SV* sv)
 #define PERL_ARGS_ASSERT_IN_ARENAS_FREED	\
 	assert(sv)
 
+STATIC bool	S_in_body_arenas_freed(pTHX_ svtype type, void* xpv)
+			__attribute__nonnull__(pTHX_2);
+#define PERL_ARGS_ASSERT_IN_BODY_ARENAS_FREED	\
+	assert(xpv)
+
 STATIC SV *	S_more_sv(pTHX);
 STATIC void	S_not_a_number(pTHX_ SV *const sv)
 			__attribute__nonnull__(pTHX_1);

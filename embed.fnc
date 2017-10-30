@@ -3422,6 +3422,7 @@ XEop	|void   |dtrace_probe_hash |int mode|NN const char *name|bool is_entry
 
 #if defined(PERL_IN_SV_C)
 sd	|bool	|in_arenas_freed|NN SV* sv
+sd	|bool	|in_body_arenas_freed|svtype type|NN void* xpv
 #endif
 
 : ex: set ts=8 sts=4 sw=4 noet:
