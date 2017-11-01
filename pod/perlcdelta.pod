@@ -328,6 +328,11 @@ Protect from NULL arg.
 
 no strict hashpairs
 
+=item L<Symbol> 1.08_02
+
+Improved Symbol::delete_package for readonly and protected symbols
+and classes. Calls DynaLoader::dl_unload_file on XS modules.
+
 =item L<Term::ReadKey> 2.37_03
 
 Protect from fileno returning -1, invalid file arg.

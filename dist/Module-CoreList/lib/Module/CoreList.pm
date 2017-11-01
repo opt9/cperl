@@ -16367,6 +16367,7 @@ our %delta = (
             'OS2::Process'          => '1.12_01',
             'Scalar::Util'          => '1.49_10',
             'Sub::Util'             => '1.49_10',
+            'Symbol'                => '1.08_02',
             'Term::ReadKey'         => '2.37_03',
             'Tie::Hash::NamedCapture' => '0.10_01',
             'Unicode::Collate'      => '1.25_01',
