@@ -1648,7 +1648,7 @@
 #  if defined(PERL_INLINE_SUBS)
 #    if defined(PERL_IN_OP_C)
 #define cv_check_inline(a,b)	S_cv_check_inline(aTHX_ a,b)
-#define cv_do_inline(a,b,c,d)	S_cv_do_inline(aTHX_ a,b,c,d)
+#define cv_do_inline(a,b,c)	S_cv_do_inline(aTHX_ a,b,c)
 #    endif
 #  endif
 #  if defined(PERL_IN_AV_C)

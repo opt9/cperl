@@ -8085,7 +8085,7 @@ STATIC bool	S_cv_check_inline(pTHX_ const OP *o, CV *compcv)
 #define PERL_ARGS_ASSERT_CV_CHECK_INLINE	\
 	assert(o); assert(compcv)
 
-STATIC OP*	S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
+STATIC OP*	S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv)
 			__attribute__nonnull__(pTHX_1)
 			__attribute__nonnull__(pTHX_2)
 			__attribute__nonnull__(pTHX_3);
