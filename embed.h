@@ -470,7 +470,6 @@
 #define op_append_elem(a,b,c)	Perl_op_append_elem(aTHX_ a,b,c)
 #define op_append_list(a,b,c)	Perl_op_append_list(aTHX_ a,b,c)
 #define op_class(a)		Perl_op_class(aTHX_ a)
-#define op_clone_oplist(a,b,c)	Perl_op_clone_oplist(aTHX_ a,b,c)
 #define op_clone_optree(a,b)	Perl_op_clone_optree(aTHX_ a,b)
 #define op_contextualize(a,b)	Perl_op_contextualize(aTHX_ a,b)
 #define op_convert_list(a,b,c)	Perl_op_convert_list(aTHX_ a,b,c)
@@ -1649,7 +1648,6 @@
 #  if defined(PERL_INLINE_SUBS)
 #    if defined(PERL_IN_OP_C)
 #define cv_check_inline(a,b)	S_cv_check_inline(aTHX_ a,b)
-#define cv_do_inline(a,b,c,d)	S_cv_do_inline(aTHX_ a,b,c,d)
 #    endif
 #  endif
 #  if defined(PERL_IN_AV_C)
@@ -1778,6 +1776,7 @@
 #define const_sv_xsub(a)	S_const_sv_xsub(aTHX_ a)
 #define cop_free(a)		S_cop_free(aTHX_ a)
 #define core_type_name(a)	S_core_type_name(aTHX_ a)
+#define cv_do_inline(a,b,c,d)	S_cv_do_inline(aTHX_ a,b,c,d)
 #define do_method_finalize(a,b,c,d)	S_do_method_finalize(aTHX_ a,b,c,d)
 #define dup_attrlist(a)		S_dup_attrlist(aTHX_ a)
 #define finalize_op(a)		S_finalize_op(aTHX_ a)
