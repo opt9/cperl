@@ -7269,8 +7269,6 @@ INFNAN_NV_U8_DECL PL_nan;
 
 #define MAX_NUMFIELDS 65536 /* U16_MAX */
 
-/* temporarily only. will go away with 5.27.3 */
-/* #define OLD_FIELDS_GV / **/
 #define FIELDS_DYNAMIC_PADSIZE /* */
 
 #undef croak_no_modify_sv
