@@ -4231,13 +4231,6 @@ PERL_CALLCONV void	Perl_op_clear(pTHX_ OP* o)
 #define PERL_ARGS_ASSERT_OP_CLEAR	\
 	assert(o)
 
-PERL_CALLCONV OP*	Perl_op_clone_oplist(pTHX_ OP* o, OP* last, bool init)
-			__attribute__global__
-			__attribute__warn_unused_result__
-			__attribute__nonnull__(pTHX_1);
-#define PERL_ARGS_ASSERT_OP_CLONE_OPLIST	\
-	assert(o)
-
 PERL_CALLCONV OP*	Perl_op_clone_optree(pTHX_ OP* o, bool init)
 			__attribute__global__
 			__attribute__warn_unused_result__
@@ -8092,13 +8085,6 @@ STATIC bool	S_cv_check_inline(pTHX_ const OP *o, CV *compcv)
 #define PERL_ARGS_ASSERT_CV_CHECK_INLINE	\
 	assert(o); assert(compcv)
 
-STATIC OP*	S_cv_do_inline(pTHX_ OP *o, OP *cvop, CV *cv, bool meth)
-			__attribute__nonnull__(pTHX_1)
-			__attribute__nonnull__(pTHX_2)
-			__attribute__nonnull__(pTHX_3);
-#define PERL_ARGS_ASSERT_CV_DO_INLINE	\
-	assert(o); assert(cvop); assert(cv)
-
 #  endif
 #endif
 #if defined(PERL_IN_AV_C)
@@ -8630,6 +8616,13 @@ STATIC void	S_cop_free(pTHX_ COP *cop)
 #ifndef PERL_NO_INLINE_FUNCTIONS
 PERL_STATIC_INLINE const char *	S_core_type_name(pTHX_ core_types_t t);
 #endif
+STATIC OP*	S_cv_do_inline(pTHX_ OP *parent, OP *o, OP *cvop, CV *cv)
+			__attribute__nonnull__(pTHX_2)
+			__attribute__nonnull__(pTHX_3)
+			__attribute__nonnull__(pTHX_4);
+#define PERL_ARGS_ASSERT_CV_DO_INLINE	\
+	assert(o); assert(cvop); assert(cv)
+
 STATIC void	S_do_method_finalize(pTHX_ const HV* klass, const CV* cv, OP* o, const PADOFFSET self)
 			__attribute__nonnull__(pTHX_1)
 			__attribute__nonnull__(pTHX_2)
