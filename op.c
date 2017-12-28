@@ -6730,12 +6730,8 @@ Perl_fields_size(char *fields)
     if (!fields)
         return 0;
     else {
-#ifdef FIELDS_DYNAMIC_PADSIZE
         const char padsize = *fields;
         fields++;
-#else
-        const char padsize = sizeof(PADOFFSET);
-#endif
         for (; *fields; l=strlen(fields)+padsize+1, fields+=l, len+=l )
             ;
         return len + 1;
@@ -6751,7 +6747,6 @@ Perl_fields_padoffset(const char *fields, const int offset,
 {
     /* fight the optimizer, which insists to get the whole word.
        really, this cries for inline assembly. */
-#if defined(FIELDS_DYNAMIC_PADSIZE)
     union {
         unsigned char p1;
         U16  p2;
@@ -6778,14 +6773,6 @@ Perl_fields_padoffset(const char *fields, const int offset,
     /*DEBUG_v(PerlIO_printf(Perl_debug_log, "po %s %d %d => %lu '%d'\n", fields,
       offset, (int)padsize, pad.po, (int)(unsigned char)(fields[offset])));*/
     return (PADOFFSET)pad.po;
-#else
-    PADOFFSET pad;
-    PERL_ARGS_ASSERT_FIELDS_PADOFFSET;
-    memcpy(&pad, &fields[offset], padsize);
-    /*DEBUG_v(PerlIO_printf(Perl_debug_log, "po %s %d %d => %lu\n", fields,
-      offset, (int)padsize, pad));*/
-    return pad;
-#endif
 }
 
 /*
@@ -6815,39 +6802,27 @@ Perl_field_pad_add(pTHX_ HV* klass, const char* key, I32 klen, PADOFFSET targ)
 {
     char *fields = HvFIELDS_get(klass);
     U32 len = abs(klen);
-#ifdef FIELDS_DYNAMIC_PADSIZE
     const char padsize = targ < 250
         ? 1
         : targ < 65000
           ? 2
           : sizeof(PADOFFSET);
-#else
-    const char padsize = sizeof(PADOFFSET);
-#endif
+    PERL_ARGS_ASSERT_FIELD_PAD_ADD;
     if (!fields) {
         if (!SvOOK(klass)) {
             hv_iterinit(klass);
             SvOOK_on(klass);
         }
-#ifdef FIELDS_DYNAMIC_PADSIZE
         fields = (char*)PerlMemShared_malloc(len+padsize+3);
         Copy(&padsize, fields, 1, char); /* one byte */
         fields++;
-#else
-        fields = (char*)PerlMemShared_malloc(len+padsize+2);
-#endif
         Copy(key, fields, len+1, char);
         Copy(&targ, fields+len+1, padsize, char);
         fields[len+padsize+1] = '\0'; /* ending sentinel */
         /*DEBUG_v(PerlIO_printf(Perl_debug_log, "add %s %d %d => %lu\n", fields, len+1, (int)padsize, targ));*/
-#ifdef FIELDS_DYNAMIC_PADSIZE
         HvFIELDS(klass) = fields-1;
-#else
-        HvFIELDS(klass) = fields;
-#endif
     } else {
         int olen = 0, i, l, newlen;
-#ifdef FIELDS_DYNAMIC_PADSIZE
         char *ofields = fields;
         if (padsize != *ofields) {
             /* realloc fields with new padsize %d <> old %d */
@@ -6881,9 +6856,6 @@ Perl_field_pad_add(pTHX_ HV* klass, const char* key, I32 klen, PADOFFSET targ)
             return;
         }
         fields++;
-#else
-        char *ofields = fields;
-#endif
         /* olen and newlen excluding final \0 */
         for (i=0; *fields; l=strlen(fields)+padsize+1, fields += l, i++ )
             ;
@@ -6926,15 +6898,9 @@ Perl_field_search(pTHX_ const HV* klass, const char* key, I32 klen, PADOFFSET* p
         if (!fields)
             return NOT_IN_PAD;
         else {
-#ifdef FIELDS_DYNAMIC_PADSIZE
             const char padsize = *fields;
-#else
-            const char padsize = sizeof(PADOFFSET);
-#endif
             int i, l;
-#ifdef FIELDS_DYNAMIC_PADSIZE
             fields++;
-#endif
             l = strlen(fields);
             for (i=0; *fields && strNE(fields, key);
                   l = strlen(fields), fields += l+padsize+1, i++ )
@@ -6984,15 +6950,9 @@ Perl_numfields(pTHX_ const HV* klass)
         if (!fields)
             return 0;
         else {
-#ifdef FIELDS_DYNAMIC_PADSIZE
             const char padsize = *fields;
-#else
-            const char padsize = sizeof(PADOFFSET);
-#endif
             int i, l;
-#ifdef FIELDS_DYNAMIC_PADSIZE
             fields++;
-#endif
             for (i=0; *fields; l=strlen(fields), fields += l+padsize+1, i++ )
                 ;
             return (U16)i;
@@ -7017,12 +6977,8 @@ Perl_field_index(pTHX_ const HV* klass, U16 i)
             return NOT_IN_PAD;
         else {
             int j, l;
-#ifdef FIELDS_DYNAMIC_PADSIZE
             const char padsize = *fields;
             fields++;
-#else
-            const char padsize = sizeof(PADOFFSET);
-#endif
             l = strlen(fields);
             for (j=0; *fields && j < i; l=strlen(fields), fields += l+padsize+1, j++ )
                 ;
@@ -22514,12 +22470,8 @@ S_add_isa_fields(pTHX_ HV* klass, AV* isa)
         fields = HvFIELDS_get(curclass);
         if (!fields) /* nothing to copy */
             continue;
-#ifdef FIELDS_DYNAMIC_PADSIZE
         padsize = *fields;
         fields++;
-#else
-        padsize = sizeof(PADOFFSET);
-#endif
         l = strlen(fields);
         for (; *fields; l=strlen(fields), fields += l+padsize+1 ) {
             PADOFFSET po = fields_padoffset(fields, l+1, padsize);
@@ -22812,12 +22764,8 @@ Perl_class_role_finalize(pTHX_ OP* o)
         PL_parser->in_class = FALSE;
         return;
     }
-#ifdef FIELDS_DYNAMIC_PADSIZE
     padsize = *fields;
     fields++;
-#else
-    padsize = sizeof(PADOFFSET);
-#endif
 
     /* create the field accessor methods */
     /*ENTER;*/
