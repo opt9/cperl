@@ -242,6 +242,26 @@ mingw_modfl(long double x, long double *ip)
 #define JSON_TYPE_ANYOF_ARRAY_INDEX   1
 #define JSON_TYPE_ANYOF_HASH_INDEX    2
 
+/* types */
+#define JSON_TYPE_SCALAR       0x0000
+#define JSON_TYPE_BOOL         0x0001
+#define JSON_TYPE_INT          0x0002
+#define JSON_TYPE_FLOAT        0x0003
+#define JSON_TYPE_STRING       0x0004
+
+/* flags */
+#define JSON_TYPE_CAN_BE_NULL  0x0100
+
+/* classes */
+#define JSON_TYPE_CLASS          "Cpanel::JSON::XS::Type"
+#define JSON_TYPE_ARRAYOF_CLASS  "Cpanel::JSON::XS::Type::ArrayOf"
+#define JSON_TYPE_HASHOF_CLASS   "Cpanel::JSON::XS::Type::HashOf"
+#define JSON_TYPE_ANYOF_CLASS    "Cpanel::JSON::XS::Type::AnyOf"
+
+#define JSON_TYPE_ANYOF_SCALAR_INDEX  0
+#define JSON_TYPE_ANYOF_ARRAY_INDEX   1
+#define JSON_TYPE_ANYOF_HASH_INDEX    2
+
 /* three extra for rounding, sign, and end of string */
 #define IVUV_MAXCHARS (sizeof (UV) * CHAR_BIT * 28 / 93 + 3)
 
